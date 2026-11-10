@@ -16,9 +16,7 @@ import {
   Flame,
   Beer,
   UtensilsCrossed,
-  GlassWater,
-  Trophy,
-  ArrowRight
+  GlassWater
 } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import { Product, ProductCategory, PaymentMethod } from '../types';
@@ -53,10 +51,10 @@ export const POSView: React.FC = () => {
   const [newCustTeam, setNewCustTeam] = useState<string>('');
 
   const categories = [
-    { id: 'all', label: 'Todos os Itens', icon: ShoppingBag },
+    { id: 'all', label: 'Cardápio Completo', icon: ShoppingBag },
     { id: 'comidas', label: 'Espetos & Churrasco', icon: Flame },
     { id: 'bebidas_alcoolicas', label: 'Cervejas no Gelo', icon: Beer },
-    { id: 'bebidas', label: 'Refris & Águas', icon: GlassWater },
+    { id: 'bebidas', label: 'Refrigerantes & Águas', icon: GlassWater },
     { id: 'petiscos_doces', label: 'Pastéis & Porções', icon: UtensilsCrossed },
   ];
 
@@ -76,12 +74,12 @@ export const POSView: React.FC = () => {
   const handleCheckoutClick = () => {
     setSaleErrorMessage('');
     if (cart.length === 0) {
-      setSaleErrorMessage('Adicione ao menos um item na comanda.');
+      setSaleErrorMessage('Selecione itens no cardápio para montar o pedido.');
       return;
     }
 
     if (paymentMethod === 'fiado' && !selectedCustomerId) {
-      setSaleErrorMessage('Selecione ou cadastre um cliente para registrar na caderneta de fiado.');
+      setSaleErrorMessage('Selecione um cliente para registrar na caderneta de fiado.');
       return;
     }
 
@@ -103,7 +101,7 @@ export const POSView: React.FC = () => {
     });
 
     if (result.success) {
-      setSaleSuccessMessage(`Pedido de ${formatBRL(result.sale?.totalAmount || 0)} registrado com sucesso!`);
+      setSaleSuccessMessage(`Pedido de ${formatBRL(result.sale?.totalAmount || 0)} finalizado com sucesso!`);
       setCashTendered('');
       setSelectedCustomerId('');
       setTimeout(() => setSaleSuccessMessage(''), 4500);
@@ -131,43 +129,42 @@ export const POSView: React.FC = () => {
   };
 
   return (
-    <div className="space-y-6">
-      {/* Live Matchday Banner with Real Stadium Atmosphere */}
-      <div className="relative rounded-2xl overflow-hidden border border-emerald-500/30 bg-gradient-to-r from-slate-950 via-slate-900 to-slate-950 shadow-2xl">
-        <div className="h-44 sm:h-52 w-full relative">
-          <img
-            src="/src/assets/images/stadium_concession_hero_1794318633771.jpg"
-            alt="Barraca do Campeonato de Futebol"
-            referrerPolicy="no-referrer"
-            className="w-full h-full object-cover object-center brightness-75"
-          />
-          <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/70 to-transparent flex flex-col justify-end p-5 sm:p-7">
-            {/* Live Ticker Tag */}
-            <div className="flex flex-wrap items-center gap-2 mb-2">
-              <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-500/20 border border-emerald-500/40 text-[11px] font-extrabold text-emerald-300 font-mono">
-                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
-                AO VIVO NO CAMPO
-              </span>
-              <span className="text-xs text-slate-300 font-semibold hidden sm:inline">
-                ⚽ Copa dos Campeões Varzeana · Final da Rodada
-              </span>
-            </div>
+    <div className="space-y-5">
+      {/* Sleek, Modern Matchday Banner Header */}
+      <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 sm:p-5 shadow-sm flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+        <div>
+          <div className="flex items-center gap-2 mb-1">
+            <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse" />
+            <span className="text-xs font-bold text-emerald-700 dark:text-emerald-400 uppercase tracking-wider font-mono">
+              ⚽ Campeonato Varzeano 2026 · Rodada em Andamento
+            </span>
+          </div>
+          <h1 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white tracking-tight">
+            Balcão de Vendas &amp; Atendimento Rápido
+          </h1>
+          <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-0.5">
+            Toque nos espetinhos, pastéis ou bebidas para lançar o pedido. Baixa imediata de estoque.
+          </p>
+        </div>
 
-            <h1 className="text-2xl sm:text-3xl font-black text-white tracking-tight leading-tight text-balance">
-              Balcão de Atendimento &amp; Venda Rápida
-            </h1>
-            <p className="text-xs sm:text-sm text-slate-300 mt-1 max-w-xl leading-relaxed">
-              Toque nos espetinhos na brasa, pastéis ou cervejas para lançar o pedido. Baixa imediata de estoque e quitação no PIX.
-            </p>
+        <div className="flex items-center gap-2.5 bg-slate-50 dark:bg-slate-800/60 p-2.5 rounded-xl border border-slate-200/80 dark:border-slate-700/60 text-xs self-stretch sm:self-auto justify-between sm:justify-start">
+          <div className="text-left">
+            <span className="text-[10px] text-slate-400 uppercase font-bold block">Status da Barraca</span>
+            <span className="font-extrabold text-emerald-700 dark:text-emerald-400">🔥 Churrasqueira a toda</span>
+          </div>
+          <div className="h-6 w-px bg-slate-200 dark:bg-slate-700 mx-1" />
+          <div className="text-left">
+            <span className="text-[10px] text-slate-400 uppercase font-bold block">Bebidas</span>
+            <span className="font-extrabold text-teal-700 dark:text-teal-400">❄️ No gelo moído</span>
           </div>
         </div>
       </div>
 
       {/* Main Kiosk Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-        {/* Left: Product Grid (7-8 cols) */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
+        {/* Left: Product Selection (7-8 cols) */}
         <div className="lg:col-span-7 xl:col-span-8 space-y-4">
-          {/* Search & Filter Toolbar */}
+          {/* Search & Category Filter Controls */}
           <div className="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center justify-between">
             {/* Search Input */}
             <div className="relative flex-1">
@@ -176,13 +173,13 @@ export const POSView: React.FC = () => {
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Buscar espeto, pastel, cerveja, refri..."
-                className="w-full bg-slate-900/90 border border-slate-800 rounded-xl pl-10 pr-8 py-2.5 text-xs sm:text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500/40 transition-all shadow-inner"
+                placeholder="Buscar espeto, pastel, cerveja, refrigerante..."
+                className="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl pl-10 pr-8 py-2.5 text-xs sm:text-sm text-slate-900 dark:text-slate-100 placeholder-slate-400 focus:outline-none focus:border-emerald-600 focus:ring-2 focus:ring-emerald-500/20 transition-all shadow-xs"
               />
               {searchQuery && (
                 <button
                   onClick={() => setSearchQuery('')}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-slate-400 hover:text-white"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-slate-400 hover:text-slate-700 dark:hover:text-white"
                 >
                   ✕
                 </button>
@@ -190,7 +187,7 @@ export const POSView: React.FC = () => {
             </div>
 
             {/* Category Segmented Tabs */}
-            <div className="flex items-center gap-1 p-1 bg-slate-900 border border-slate-800 rounded-xl overflow-x-auto">
+            <div className="flex items-center gap-1 p-1 bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl overflow-x-auto">
               {categories.map((cat) => {
                 const IconComponent = cat.icon;
                 const isActive = selectedCategory === cat.id;
@@ -200,8 +197,8 @@ export const POSView: React.FC = () => {
                     onClick={() => setSelectedCategory(cat.id)}
                     className={`px-3 py-1.5 text-xs font-bold rounded-lg whitespace-nowrap transition-all flex items-center gap-1.5 ${
                       isActive
-                        ? 'bg-emerald-600 text-white shadow-md shadow-emerald-950/60'
-                        : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/60'
+                        ? 'bg-emerald-600 text-white shadow-xs'
+                        : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-white/80 dark:hover:bg-slate-800'
                     }`}
                   >
                     <IconComponent className="w-3.5 h-3.5" />
@@ -212,7 +209,7 @@ export const POSView: React.FC = () => {
             </div>
           </div>
 
-          {/* Product Cards with Real Photography */}
+          {/* Product Cards Grid with Food Photography */}
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-3.5">
             {filteredProducts.map((prod) => {
               const cartItem = cart.find((c) => c.product.id === prod.id);
@@ -222,41 +219,41 @@ export const POSView: React.FC = () => {
               return (
                 <div
                   key={prod.id}
-                  className={`group relative rounded-2xl border transition-all duration-200 flex flex-col justify-between overflow-hidden shadow-lg ${
+                  className={`group relative rounded-2xl border transition-all duration-150 flex flex-col justify-between overflow-hidden shadow-xs hover:shadow-md ${
                     !inStock
-                      ? 'bg-slate-900/40 border-slate-800/80 opacity-60'
-                      : 'bg-slate-900/95 hover:bg-slate-800/95 border-slate-800 hover:border-emerald-500/50 hover:shadow-emerald-950/30'
+                      ? 'bg-slate-50 dark:bg-slate-900/40 border-slate-200 dark:border-slate-800 opacity-60'
+                      : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 hover:border-emerald-500 dark:hover:border-emerald-500/50'
                   }`}
                 >
-                  {/* Photo Header */}
+                  {/* Photo Container */}
                   {prod.imageUrl && (
-                    <div className="relative h-28 sm:h-32 w-full overflow-hidden bg-slate-950">
+                    <div className="relative h-28 sm:h-32 w-full overflow-hidden bg-slate-100 dark:bg-slate-950">
                       <img
                         src={prod.imageUrl}
                         alt={prod.name}
                         referrerPolicy="no-referrer"
-                        className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-300 brightness-95"
+                        className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-300"
                       />
-                      <div className="absolute inset-0 bg-gradient-to-t from-slate-900 via-transparent to-black/30" />
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-black/20" />
 
-                      {/* Stock badge floating top-right */}
+                      {/* Stock badge top-right */}
                       <div className="absolute top-2 right-2">
                         <span
-                          className={`font-mono tabular-nums font-bold text-[10px] px-2 py-0.5 rounded-full backdrop-blur-md shadow-sm border ${
+                          className={`font-mono tabular-nums font-bold text-[10px] px-2 py-0.5 rounded-full backdrop-blur-md shadow-xs border ${
                             !inStock
                               ? 'bg-rose-950/80 text-rose-300 border-rose-500/40'
                               : isLowStock
                               ? 'bg-amber-950/80 text-amber-300 border-amber-500/40 animate-pulse'
-                              : 'bg-slate-950/70 text-emerald-400 border-emerald-500/30'
+                              : 'bg-slate-950/70 text-emerald-300 border-emerald-500/30'
                           }`}
                         >
                           {prod.stockQuantity} {prod.unit}
                         </span>
                       </div>
 
-                      {/* Category tag floating top-left */}
+                      {/* Category tag top-left */}
                       <div className="absolute top-2 left-2">
-                        <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-slate-950/70 text-slate-300 border border-slate-700/60 backdrop-blur-md">
+                        <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-slate-950/70 text-white border border-white/20 backdrop-blur-md">
                           {prod.category === 'bebidas_alcoolicas'
                             ? '🍺 Cerveja'
                             : prod.category === 'bebidas'
@@ -269,42 +266,42 @@ export const POSView: React.FC = () => {
                     </div>
                   )}
 
-                  {/* Body Info */}
+                  {/* Card Content */}
                   <div className="p-3.5 flex-1 flex flex-col justify-between">
                     <div>
-                      <h3 className="text-xs sm:text-sm font-extrabold text-white tracking-tight leading-snug line-clamp-2">
+                      <h3 className="text-xs sm:text-sm font-extrabold text-slate-900 dark:text-white tracking-tight leading-snug line-clamp-2">
                         {prod.name}
                       </h3>
                       {prod.description && (
-                        <p className="text-[11px] text-slate-400 mt-1 line-clamp-1 leading-normal">
+                        <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-1 line-clamp-1 leading-normal">
                           {prod.description}
                         </p>
                       )}
                     </div>
 
-                    {/* Bottom Price & Button */}
-                    <div className="mt-3 pt-2.5 border-t border-slate-800/80 flex items-center justify-between gap-2">
-                      <span className="text-base sm:text-lg font-black text-emerald-400 font-mono tabular-nums tracking-tight">
+                    {/* Footer: Price & Add Button */}
+                    <div className="mt-3 pt-2.5 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between gap-2">
+                      <span className="text-base sm:text-lg font-black text-emerald-700 dark:text-emerald-400 font-mono tabular-nums">
                         {formatBRL(prod.salePrice)}
                       </span>
 
                       {inStock ? (
                         cartItem ? (
-                          <div className="flex items-center gap-1 bg-slate-800/90 rounded-xl p-1 border border-slate-700 shadow-inner">
+                          <div className="flex items-center gap-1 bg-slate-100 dark:bg-slate-800 rounded-xl p-1 border border-slate-200 dark:border-slate-700">
                             <button
                               type="button"
                               onClick={() => updateCartQuantity(prod.id, cartItem.quantity - 1)}
-                              className="w-6 h-6 rounded-lg flex items-center justify-center text-slate-300 hover:bg-slate-700 hover:text-white transition-colors"
+                              className="w-6 h-6 rounded-lg flex items-center justify-center text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 hover:text-slate-900 dark:hover:text-white transition-colors"
                             >
                               <Minus className="w-3 h-3" />
                             </button>
-                            <span className="text-xs font-bold text-white w-5 text-center font-mono">
+                            <span className="text-xs font-bold text-slate-900 dark:text-white w-5 text-center font-mono">
                               {cartItem.quantity}
                             </span>
                             <button
                               type="button"
                               onClick={() => addToCart(prod, 1)}
-                              className="w-6 h-6 rounded-lg flex items-center justify-center text-slate-300 hover:bg-slate-700 hover:text-white transition-colors"
+                              className="w-6 h-6 rounded-lg flex items-center justify-center text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 hover:text-slate-900 dark:hover:text-white transition-colors"
                             >
                               <Plus className="w-3 h-3" />
                             </button>
@@ -313,14 +310,14 @@ export const POSView: React.FC = () => {
                           <button
                             type="button"
                             onClick={() => addToCart(prod, 1)}
-                            className="px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold flex items-center gap-1 transition-all shadow-md active:scale-95"
+                            className="px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold flex items-center gap-1 transition-all shadow-xs active:scale-95"
                           >
                             <Plus className="w-3.5 h-3.5" />
                             <span>Pedir</span>
                           </button>
                         )
                       ) : (
-                        <span className="text-[11px] font-bold text-rose-400 uppercase tracking-wide">
+                        <span className="text-[11px] font-bold text-rose-500 uppercase tracking-wide">
                           Esgotado
                         </span>
                       )}
@@ -332,19 +329,19 @@ export const POSView: React.FC = () => {
           </div>
         </div>
 
-        {/* Right: Kiosk Comanda Ticket & Checkout (4-5 cols) */}
-        <div className="lg:col-span-5 xl:col-span-4 bg-slate-900/95 border border-slate-800 rounded-3xl p-5 sm:p-6 shadow-2xl space-y-5 sticky top-20 backdrop-blur-xl">
+        {/* Right: Modern Comanda Ticket (4-5 cols) */}
+        <div className="lg:col-span-5 xl:col-span-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-5 sm:p-6 shadow-sm space-y-5 sticky top-20">
           {/* Header */}
-          <div className="flex items-center justify-between pb-3.5 border-b border-slate-800">
+          <div className="flex items-center justify-between pb-3.5 border-b border-slate-200 dark:border-slate-800">
             <div className="flex items-center gap-2.5">
-              <div className="w-8 h-8 rounded-xl bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-emerald-400">
+              <div className="w-9 h-9 rounded-xl bg-emerald-50 dark:bg-emerald-500/10 border border-emerald-200 dark:border-emerald-500/20 flex items-center justify-center text-emerald-600 dark:text-emerald-400">
                 <ShoppingBag className="w-4 h-4" />
               </div>
               <div>
-                <h2 className="text-sm font-bold text-white tracking-tight">
+                <h2 className="text-sm font-bold text-slate-900 dark:text-white tracking-tight">
                   Comanda do Balcão
                 </h2>
-                <span className="text-[11px] text-slate-400">
+                <span className="text-[11px] text-slate-500 dark:text-slate-400">
                   {cart.length === 0 ? 'Aguardando itens do cliente' : `${cart.reduce((a, b) => a + b.quantity, 0)} itens selecionados`}
                 </span>
               </div>
@@ -354,7 +351,7 @@ export const POSView: React.FC = () => {
               <button
                 type="button"
                 onClick={clearCart}
-                className="text-xs text-slate-400 hover:text-rose-400 transition-colors flex items-center gap-1 font-semibold"
+                className="text-xs text-slate-500 hover:text-rose-600 dark:text-slate-400 dark:hover:text-rose-400 transition-colors flex items-center gap-1 font-semibold"
               >
                 <Trash2 className="w-3.5 h-3.5" />
                 Limpar
@@ -365,48 +362,48 @@ export const POSView: React.FC = () => {
           {/* Cart Item Rows */}
           <div className="space-y-2 max-h-56 overflow-y-auto pr-1">
             {cart.length === 0 ? (
-              <div className="py-10 text-center text-slate-500 text-xs leading-relaxed">
-                Toque nos espetos, pastéis ou bebidas para registrar o pedido da rodada.
+              <div className="py-10 text-center text-slate-400 dark:text-slate-500 text-xs leading-relaxed">
+                Toque nos espetos, pastéis ou bebidas para montar a comanda do jogo.
               </div>
             ) : (
               cart.map((item) => (
                 <div
                   key={item.product.id}
-                  className="flex items-center justify-between gap-2 p-2.5 rounded-xl bg-slate-950/70 border border-slate-800/80 hover:border-slate-700 transition-colors"
+                  className="flex items-center justify-between gap-2 p-2.5 rounded-xl bg-slate-50 dark:bg-slate-950/70 border border-slate-200/80 dark:border-slate-800/80"
                 >
                   <div className="min-w-0 flex-1">
-                    <h4 className="text-xs font-bold text-slate-100 truncate">
+                    <h4 className="text-xs font-bold text-slate-900 dark:text-slate-100 truncate">
                       {item.product.name}
                     </h4>
-                    <span className="text-[11px] text-slate-400 font-mono">
+                    <span className="text-[11px] text-slate-500 dark:text-slate-400 font-mono">
                       {item.quantity}x {formatBRL(item.product.salePrice)}
                     </span>
                   </div>
 
                   <div className="flex items-center gap-2">
-                    <span className="text-xs font-bold text-emerald-400 font-mono tabular-nums">
+                    <span className="text-xs font-extrabold text-emerald-700 dark:text-emerald-400 font-mono tabular-nums">
                       {formatBRL(item.product.salePrice * item.quantity)}
                     </span>
-                    <div className="flex items-center bg-slate-800/80 rounded-lg border border-slate-700 p-0.5">
+                    <div className="flex items-center bg-white dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700 p-0.5 shadow-xs">
                       <button
                         onClick={() => updateCartQuantity(item.product.id, item.quantity - 1)}
-                        className="w-5 h-5 flex items-center justify-center text-slate-300 hover:text-white"
+                        className="w-5 h-5 flex items-center justify-center text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white"
                       >
                         <Minus className="w-3 h-3" />
                       </button>
-                      <span className="w-4 text-center text-xs font-mono font-bold">
+                      <span className="w-4 text-center text-xs font-mono font-bold text-slate-900 dark:text-white">
                         {item.quantity}
                       </span>
                       <button
                         onClick={() => updateCartQuantity(item.product.id, item.quantity + 1)}
-                        className="w-5 h-5 flex items-center justify-center text-slate-300 hover:text-white"
+                        className="w-5 h-5 flex items-center justify-center text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white"
                       >
                         <Plus className="w-3 h-3" />
                       </button>
                     </div>
                     <button
                       onClick={() => removeFromCart(item.product.id)}
-                      className="text-slate-500 hover:text-rose-400 p-1 transition-colors"
+                      className="text-slate-400 hover:text-rose-500 p-1 transition-colors"
                       title="Remover"
                     >
                       <Trash2 className="w-3.5 h-3.5" />
@@ -418,14 +415,14 @@ export const POSView: React.FC = () => {
           </div>
 
           {/* Subtotal & Total */}
-          <div className="pt-3.5 border-t border-slate-800/80 space-y-1.5">
-            <div className="flex justify-between text-xs text-slate-400">
+          <div className="pt-3.5 border-t border-slate-200 dark:border-slate-800 space-y-1.5">
+            <div className="flex justify-between text-xs text-slate-500 dark:text-slate-400">
               <span>Subtotal</span>
               <span className="font-mono tabular-nums">{formatBRL(cartTotal)}</span>
             </div>
             <div className="flex justify-between items-baseline pt-1">
-              <span className="text-sm font-bold text-white">Total a Pagar</span>
-              <span className="text-3xl font-black text-emerald-400 font-mono tabular-nums tracking-tight">
+              <span className="text-sm font-bold text-slate-900 dark:text-white">Total a Pagar</span>
+              <span className="text-3xl font-black text-emerald-700 dark:text-emerald-400 font-mono tabular-nums tracking-tight">
                 {formatBRL(cartTotal)}
               </span>
             </div>
@@ -433,7 +430,7 @@ export const POSView: React.FC = () => {
 
           {/* Payment Method Selector */}
           <div className="space-y-2">
-            <span className="text-xs font-bold text-slate-300 block">
+            <span className="text-xs font-bold text-slate-700 dark:text-slate-300 block">
               Forma de Pagamento
             </span>
             <div className="grid grid-cols-2 gap-2">
@@ -442,11 +439,11 @@ export const POSView: React.FC = () => {
                 onClick={() => setPaymentMethod('pix')}
                 className={`py-2 px-3 rounded-xl border text-xs font-bold flex items-center gap-2 transition-all ${
                   paymentMethod === 'pix'
-                    ? 'bg-teal-500/20 border-teal-400 text-teal-300 shadow-sm ring-1 ring-teal-400/30'
-                    : 'bg-slate-950/60 border-slate-800 text-slate-400 hover:text-slate-200'
+                    ? 'bg-teal-50 dark:bg-teal-500/20 border-teal-500 text-teal-800 dark:text-teal-300 shadow-xs'
+                    : 'bg-slate-50 dark:bg-slate-950/60 border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400'
                 }`}
               >
-                <QrCode className="w-4 h-4 text-teal-400 shrink-0" />
+                <QrCode className="w-4 h-4 text-teal-600 dark:text-teal-400 shrink-0" />
                 <span>PIX QR Code</span>
               </button>
 
@@ -455,11 +452,11 @@ export const POSView: React.FC = () => {
                 onClick={() => setPaymentMethod('dinheiro')}
                 className={`py-2 px-3 rounded-xl border text-xs font-bold flex items-center gap-2 transition-all ${
                   paymentMethod === 'dinheiro'
-                    ? 'bg-emerald-500/20 border-emerald-400 text-emerald-300 shadow-sm ring-1 ring-emerald-400/30'
-                    : 'bg-slate-950/60 border-slate-800 text-slate-400 hover:text-slate-200'
+                    ? 'bg-emerald-50 dark:bg-emerald-500/20 border-emerald-500 text-emerald-800 dark:text-emerald-300 shadow-xs'
+                    : 'bg-slate-50 dark:bg-slate-950/60 border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400'
                 }`}
               >
-                <Banknote className="w-4 h-4 text-emerald-400 shrink-0" />
+                <Banknote className="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0" />
                 <span>Dinheiro Vivo</span>
               </button>
 
@@ -468,11 +465,11 @@ export const POSView: React.FC = () => {
                 onClick={() => setPaymentMethod('cartao_debito')}
                 className={`py-2 px-3 rounded-xl border text-xs font-bold flex items-center gap-2 transition-all ${
                   paymentMethod === 'cartao_debito'
-                    ? 'bg-blue-500/20 border-blue-400 text-blue-300 shadow-sm ring-1 ring-blue-400/30'
-                    : 'bg-slate-950/60 border-slate-800 text-slate-400 hover:text-slate-200'
+                    ? 'bg-blue-50 dark:bg-blue-500/20 border-blue-500 text-blue-800 dark:text-blue-300 shadow-xs'
+                    : 'bg-slate-50 dark:bg-slate-950/60 border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400'
                 }`}
               >
-                <CreditCard className="w-4 h-4 text-blue-400 shrink-0" />
+                <CreditCard className="w-4 h-4 text-blue-600 dark:text-blue-400 shrink-0" />
                 <span>Cartão Máqu.</span>
               </button>
 
@@ -481,11 +478,11 @@ export const POSView: React.FC = () => {
                 onClick={() => setPaymentMethod('fiado')}
                 className={`py-2 px-3 rounded-xl border text-xs font-bold flex items-center gap-2 transition-all ${
                   paymentMethod === 'fiado'
-                    ? 'bg-amber-500/20 border-amber-400 text-amber-300 shadow-sm ring-1 ring-amber-400/30'
-                    : 'bg-slate-950/60 border-slate-800 text-slate-400 hover:text-slate-200'
+                    ? 'bg-amber-50 dark:bg-amber-500/20 border-amber-500 text-amber-800 dark:text-amber-300 shadow-xs'
+                    : 'bg-slate-50 dark:bg-slate-950/60 border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400'
                 }`}
               >
-                <BookOpen className="w-4 h-4 text-amber-400 shrink-0" />
+                <BookOpen className="w-4 h-4 text-amber-600 dark:text-amber-400 shrink-0" />
                 <span>Fiado / Caderneta</span>
               </button>
             </div>
@@ -493,8 +490,8 @@ export const POSView: React.FC = () => {
 
           {/* Cash Change Assistant */}
           {paymentMethod === 'dinheiro' && cartTotal > 0 && (
-            <div className="p-3 bg-slate-950/90 border border-slate-800 rounded-xl space-y-2">
-              <div className="flex items-center justify-between text-[11px] text-slate-400">
+            <div className="p-3 bg-slate-50 dark:bg-slate-950/90 border border-slate-200 dark:border-slate-800 rounded-xl space-y-2">
+              <div className="flex items-center justify-between text-[11px] text-slate-500 dark:text-slate-400">
                 <span>Calculadora de Troco</span>
                 <span className="font-mono">Valor Entregue</span>
               </div>
@@ -504,7 +501,7 @@ export const POSView: React.FC = () => {
                 value={cashTendered}
                 onChange={(e) => setCashTendered(e.target.value)}
                 placeholder="Ex: 50.00"
-                className="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-1.5 text-xs text-white font-mono"
+                className="w-full bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-lg px-3 py-1.5 text-xs text-slate-900 dark:text-white font-mono focus:outline-none focus:border-emerald-500"
               />
               <div className="flex gap-1.5 pt-1">
                 {[20, 50, 100].map((v) => (
@@ -512,7 +509,7 @@ export const POSView: React.FC = () => {
                     key={v}
                     type="button"
                     onClick={() => setCashTendered(String(v))}
-                    className="flex-1 py-1 bg-slate-800/80 hover:bg-slate-700 text-[11px] text-slate-300 font-mono rounded-lg transition-colors"
+                    className="flex-1 py-1 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-[11px] text-slate-700 dark:text-slate-300 font-mono rounded-lg hover:bg-slate-100"
                   >
                     R$ {v}
                   </button>
@@ -520,13 +517,13 @@ export const POSView: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => setCashTendered(String(cartTotal))}
-                  className="flex-1 py-1 bg-slate-800/80 hover:bg-slate-700 text-[11px] text-emerald-400 font-mono rounded-lg transition-colors"
+                  className="flex-1 py-1 bg-emerald-50 dark:bg-slate-800 border border-emerald-300 dark:border-emerald-700 text-[11px] text-emerald-700 dark:text-emerald-400 font-mono rounded-lg font-bold"
                 >
                   Exato
                 </button>
               </div>
               {cashGivenNumber >= cartTotal && (
-                <div className="text-xs text-emerald-400 font-mono flex justify-between pt-1 font-bold border-t border-slate-800">
+                <div className="text-xs text-emerald-700 dark:text-emerald-400 font-mono flex justify-between pt-1 font-extrabold border-t border-slate-200 dark:border-slate-800">
                   <span>Troco a Devolver:</span>
                   <span>{formatBRL(changeDue)}</span>
                 </div>
@@ -536,15 +533,15 @@ export const POSView: React.FC = () => {
 
           {/* Fiado Customer Picker */}
           {paymentMethod === 'fiado' && (
-            <div className="p-3 bg-amber-500/10 border border-amber-500/30 rounded-xl space-y-2.5">
+            <div className="p-3 bg-amber-50 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/30 rounded-xl space-y-2.5">
               <div className="flex items-center justify-between">
-                <span className="text-xs font-bold text-amber-300">
+                <span className="text-xs font-bold text-amber-900 dark:text-amber-300">
                   Caderneta / Cliente do Fiado
                 </span>
                 <button
                   type="button"
                   onClick={() => setShowQuickCustomerModal(true)}
-                  className="text-[11px] text-amber-400 underline hover:text-amber-300 font-semibold"
+                  className="text-[11px] text-amber-700 dark:text-amber-400 underline hover:text-amber-900 font-bold"
                 >
                   + Novo Cliente
                 </button>
@@ -553,7 +550,7 @@ export const POSView: React.FC = () => {
               <select
                 value={selectedCustomerId}
                 onChange={(e) => setSelectedCustomerId(e.target.value)}
-                className="w-full bg-slate-900 border border-slate-700 text-xs text-white rounded-lg p-2 focus:outline-none"
+                className="w-full bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-xs text-slate-900 dark:text-white rounded-lg p-2 focus:outline-none"
               >
                 <option value="">Selecione o cliente da barraca...</option>
                 {customers.map((c) => (
@@ -564,20 +561,20 @@ export const POSView: React.FC = () => {
               </select>
 
               {selectedCustomer && (
-                <div className="text-[11px] text-slate-300 bg-slate-900/90 p-2.5 rounded-lg space-y-1">
+                <div className="text-[11px] text-slate-700 dark:text-slate-300 bg-white dark:bg-slate-900/90 p-2.5 rounded-lg border border-slate-200 dark:border-slate-800 space-y-1">
                   <div className="flex justify-between">
                     <span>Saldo devedor atual:</span>
-                    <span className="font-mono font-bold text-rose-400">
+                    <span className="font-mono font-bold text-rose-600 dark:text-rose-400">
                       {formatBRL(selectedCustomer.totalDebt)}
                     </span>
                   </div>
                   <div className="flex justify-between">
                     <span>Após este pedido:</span>
-                    <span className="font-mono font-bold text-amber-300">
+                    <span className="font-mono font-bold text-amber-700 dark:text-amber-300">
                       {formatBRL(selectedCustomer.totalDebt + cartTotal)}
                     </span>
                   </div>
-                  <div className="flex justify-between text-slate-400">
+                  <div className="flex justify-between text-slate-500">
                     <span>Limite disponível:</span>
                     <span className="font-mono">
                       {formatBRL(Math.max(0, selectedCustomer.creditLimit - (selectedCustomer.totalDebt + cartTotal)))}
@@ -590,15 +587,15 @@ export const POSView: React.FC = () => {
 
           {/* Feedback messages */}
           {saleSuccessMessage && (
-            <div className="p-3 bg-emerald-500/15 border border-emerald-500/40 rounded-xl text-xs text-emerald-300 flex items-center gap-2">
-              <CheckCircle2 className="w-4 h-4 shrink-0 text-emerald-400" />
+            <div className="p-3 bg-emerald-50 dark:bg-emerald-500/15 border border-emerald-300 dark:border-emerald-500/40 rounded-xl text-xs text-emerald-800 dark:text-emerald-300 flex items-center gap-2">
+              <CheckCircle2 className="w-4 h-4 shrink-0 text-emerald-600 dark:text-emerald-400" />
               <span>{saleSuccessMessage}</span>
             </div>
           )}
 
           {saleErrorMessage && (
-            <div className="p-3 bg-rose-500/15 border border-rose-500/40 rounded-xl text-xs text-rose-300 flex items-center gap-2">
-              <AlertCircle className="w-4 h-4 shrink-0 text-rose-400" />
+            <div className="p-3 bg-rose-50 dark:bg-rose-500/15 border border-rose-300 dark:border-rose-500/40 rounded-xl text-xs text-rose-800 dark:text-rose-300 flex items-center gap-2">
+              <AlertCircle className="w-4 h-4 shrink-0 text-rose-600 dark:text-rose-400" />
               <span>{saleErrorMessage}</span>
             </div>
           )}
@@ -608,7 +605,7 @@ export const POSView: React.FC = () => {
             type="button"
             onClick={handleCheckoutClick}
             disabled={cart.length === 0}
-            className="w-full py-4 px-4 rounded-2xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 disabled:opacity-40 disabled:cursor-not-allowed text-white font-black text-sm sm:text-base transition-all shadow-xl shadow-emerald-950/70 active:scale-[0.98] flex items-center justify-center gap-2"
+            className="w-full py-4 px-4 rounded-2xl bg-emerald-600 hover:bg-emerald-500 disabled:opacity-40 disabled:cursor-not-allowed text-white font-black text-sm sm:text-base transition-all shadow-md active:scale-[0.98] flex items-center justify-center gap-2"
           >
             {paymentMethod === 'pix' ? (
               <>
@@ -618,7 +615,7 @@ export const POSView: React.FC = () => {
             ) : paymentMethod === 'fiado' ? (
               <>
                 <BookOpen className="w-5 h-5" />
-                Registrar no Fiado
+                Registrar na Caderneta
               </>
             ) : (
               <>
@@ -644,42 +641,42 @@ export const POSView: React.FC = () => {
 
       {/* Quick Add Customer Modal */}
       {showQuickCustomerModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-150">
-          <div className="w-full max-w-sm bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-2xl text-slate-100 space-y-4">
-            <h3 className="text-base font-bold text-white flex items-center gap-2">
-              <UserCheck className="w-5 h-5 text-emerald-400" />
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-150">
+          <div className="w-full max-w-sm bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 shadow-2xl text-slate-900 dark:text-slate-100 space-y-4">
+            <h3 className="text-base font-extrabold flex items-center gap-2 text-slate-900 dark:text-white">
+              <UserCheck className="w-5 h-5 text-emerald-600" />
               Cadastrar Cliente Rápido
             </h3>
             <form onSubmit={handleQuickAddCustomer} className="space-y-3">
               <div>
-                <label className="text-xs text-slate-400 block mb-1">Nome do Cliente *</label>
+                <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 block mb-1">Nome do Cliente *</label>
                 <input
                   type="text"
                   required
                   value={newCustName}
                   onChange={(e) => setNewCustName(e.target.value)}
-                  placeholder="Ex: João da Vila"
-                  className="w-full bg-slate-950 border border-slate-700 rounded-lg p-2 text-xs text-white focus:outline-none focus:border-emerald-500"
+                  placeholder="Ex: Paulinho da Zaga"
+                  className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-700 rounded-xl p-2.5 text-xs text-slate-900 dark:text-white focus:outline-none focus:border-emerald-600"
                 />
               </div>
               <div>
-                <label className="text-xs text-slate-400 block mb-1">WhatsApp (com DDD)</label>
+                <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 block mb-1">WhatsApp (com DDD)</label>
                 <input
                   type="text"
                   value={newCustPhone}
                   onChange={(e) => setNewCustPhone(e.target.value)}
                   placeholder="Ex: 11987654321"
-                  className="w-full bg-slate-950 border border-slate-700 rounded-lg p-2 text-xs text-white focus:outline-none focus:border-emerald-500"
+                  className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-700 rounded-xl p-2.5 text-xs text-slate-900 dark:text-white focus:outline-none focus:border-emerald-600"
                 />
               </div>
               <div>
-                <label className="text-xs text-slate-400 block mb-1">Time / Camisa / Apelido</label>
+                <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 block mb-1">Time / Camisa / Apelido</label>
                 <input
                   type="text"
                   value={newCustTeam}
                   onChange={(e) => setNewCustTeam(e.target.value)}
-                  placeholder="Ex: Camisa 8 do Juventus"
-                  className="w-full bg-slate-950 border border-slate-700 rounded-lg p-2 text-xs text-white focus:outline-none focus:border-emerald-500"
+                  placeholder="Ex: Camisa 8 do Real Madruga"
+                  className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-700 rounded-xl p-2.5 text-xs text-slate-900 dark:text-white focus:outline-none focus:border-emerald-600"
                 />
               </div>
 
@@ -687,13 +684,13 @@ export const POSView: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => setShowQuickCustomerModal(false)}
-                  className="flex-1 py-2 rounded-lg border border-slate-700 text-xs text-slate-300 hover:bg-slate-800"
+                  className="flex-1 py-2.5 rounded-xl border border-slate-300 dark:border-slate-700 text-xs font-bold text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800"
                 >
                   Cancelar
                 </button>
                 <button
                   type="submit"
-                  className="flex-1 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-xs font-bold text-white"
+                  className="flex-1 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-xs font-black text-white shadow-xs"
                 >
                   Cadastrar e Selecionar
                 </button>

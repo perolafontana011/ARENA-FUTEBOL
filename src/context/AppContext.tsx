@@ -30,6 +30,8 @@ interface AppContextType {
   lockAdmin: () => void;
   adminPin: string;
   setAdminPin: (pin: string) => void;
+  theme: 'light' | 'dark';
+  toggleTheme: () => void;
 
   // Cart
   cart: CartItem[];
@@ -132,6 +134,23 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   const [adminPin, setAdminPinState] = useState<string>(() => {
     return localStorage.getItem(STORAGE_KEYS.ADMIN_PIN) || '1234';
   });
+
+  const [theme, setTheme] = useState<'light' | 'dark'>(() => {
+    return (localStorage.getItem('arena_gol_theme') as 'light' | 'dark') || 'light';
+  });
+
+  useEffect(() => {
+    localStorage.setItem('arena_gol_theme', theme);
+    if (theme === 'dark') {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+  }, [theme]);
+
+  const toggleTheme = () => {
+    setTheme((prev) => (prev === 'light' ? 'dark' : 'light'));
+  };
 
   // Data Collections with LocalStorage caching
   const [products, setProducts] = useState<Product[]>(() => {
@@ -826,6 +845,8 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
         lockAdmin,
         adminPin,
         setAdminPin,
+        theme,
+        toggleTheme,
         cart,
         addToCart,
         removeFromCart,

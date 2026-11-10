@@ -160,7 +160,6 @@ export const CustomersView: React.FC = () => {
       })
     : '';
 
-  // Avatar helper
   const getInitials = (name: string) => {
     const parts = name.trim().split(' ');
     if (parts.length >= 2) {
@@ -174,14 +173,14 @@ export const CustomersView: React.FC = () => {
       {/* Top Section Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <span className="text-xs font-semibold text-emerald-400 uppercase tracking-wider font-mono">
+          <span className="text-xs font-bold text-emerald-700 dark:text-emerald-400 uppercase tracking-wider font-mono">
             Gestão de Caderneta &amp; Cobrança
           </span>
-          <h1 className="text-xl sm:text-2xl font-black text-white tracking-tight">
+          <h1 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white tracking-tight">
             Clientes do Campeonato &amp; Fiado
           </h1>
-          <p className="text-xs sm:text-sm text-slate-400 mt-0.5">
-            Cadastre clientes, monitore saldo devedor e dispare cobranças com PIX integrado.
+          <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-0.5">
+            Cadastre clientes, monitore comandas em aberto e dispare mensagens com PIX integrado.
           </p>
         </div>
 
@@ -190,7 +189,7 @@ export const CustomersView: React.FC = () => {
             type="button"
             onClick={handleBulkDebtDispatch}
             disabled={delinquentCustomers.length === 0}
-            className="px-3.5 py-2.5 rounded-xl border border-amber-500/40 bg-amber-500/10 hover:bg-amber-500/20 disabled:opacity-40 text-amber-300 text-xs font-bold flex items-center gap-2 transition-colors whitespace-nowrap shadow-xs"
+            className="px-3.5 py-2.5 rounded-xl border border-amber-300 dark:border-amber-500/40 bg-amber-50 dark:bg-amber-500/10 hover:bg-amber-100 dark:hover:bg-amber-500/20 disabled:opacity-40 text-amber-900 dark:text-amber-300 text-xs font-bold flex items-center gap-2 transition-colors whitespace-nowrap"
             title="Disparar aviso para todos com débito vencido"
           >
             <Send className="w-3.5 h-3.5" />
@@ -200,7 +199,7 @@ export const CustomersView: React.FC = () => {
           <button
             type="button"
             onClick={() => setIsAddCustomerOpen(true)}
-            className="px-4 py-2.5 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white text-xs font-extrabold flex items-center gap-2 transition-all shadow-md shadow-emerald-950/60 whitespace-nowrap active:scale-95"
+            className="px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-extrabold flex items-center gap-2 transition-all shadow-sm whitespace-nowrap active:scale-95"
           >
             <UserPlus className="w-4 h-4" />
             <span>Cadastrar Cliente</span>
@@ -210,52 +209,52 @@ export const CustomersView: React.FC = () => {
 
       {/* KPI Cards Strip */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3.5">
-        <div className="p-4 rounded-2xl bg-slate-900/90 border border-slate-800 shadow-md">
-          <span className="text-[11px] text-slate-400 block font-medium">Total de Clientes</span>
-          <span className="text-2xl font-black text-white font-mono tabular-nums mt-1 block">
+        <div className="p-4 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-xs">
+          <span className="text-xs text-slate-500 dark:text-slate-400 block font-medium">Total de Clientes</span>
+          <span className="text-2xl font-black text-slate-900 dark:text-white font-mono tabular-nums mt-1 block">
             {customers.length}
           </span>
-          <span className="text-[11px] text-slate-500 mt-1 block">
+          <span className="text-[11px] text-slate-400 mt-1 block">
             Jogadores, árbitros e torcida
           </span>
         </div>
 
-        <div className="p-4 rounded-2xl bg-slate-900/90 border border-slate-800 shadow-md">
-          <span className="text-[11px] text-slate-400 block font-medium">Saldo Total em Fiado</span>
-          <span className="text-2xl font-black text-amber-400 font-mono tabular-nums mt-1 block">
+        <div className="p-4 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-xs">
+          <span className="text-xs text-slate-500 dark:text-slate-400 block font-medium">Saldo Total em Fiado</span>
+          <span className="text-2xl font-black text-amber-600 dark:text-amber-400 font-mono tabular-nums mt-1 block">
             {formatBRL(totalDebtSum)}
           </span>
-          <span className="text-[11px] text-slate-500 mt-1 block">
+          <span className="text-[11px] text-slate-400 mt-1 block">
             A receber em comandas abertas
           </span>
         </div>
 
-        <div className="p-4 rounded-2xl bg-slate-900/90 border border-slate-800 shadow-md">
-          <span className="text-[11px] text-slate-400 block font-medium">Débito Vencido (+15 dias)</span>
-          <span className="text-2xl font-black text-rose-400 font-mono tabular-nums mt-1 block">
+        <div className="p-4 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-xs">
+          <span className="text-xs text-slate-500 dark:text-slate-400 block font-medium">Débito Vencido (+15 dias)</span>
+          <span className="text-2xl font-black text-rose-600 dark:text-rose-400 font-mono tabular-nums mt-1 block">
             {formatBRL(delinquentDebtSum)}
           </span>
-          <span className="text-[11px] text-slate-500 mt-1 block">
+          <span className="text-[11px] text-slate-400 mt-1 block">
             {delinquentCustomers.length} devedor(es) em atraso crítico
           </span>
         </div>
 
-        <div className="p-4 rounded-2xl bg-slate-900/90 border border-slate-800 shadow-md">
-          <span className="text-[11px] text-slate-400 block font-medium">Taxa de Adimplência</span>
-          <span className="text-2xl font-black text-emerald-400 font-mono tabular-nums mt-1 block">
+        <div className="p-4 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-xs">
+          <span className="text-xs text-slate-500 dark:text-slate-400 block font-medium">Taxa de Adimplência</span>
+          <span className="text-2xl font-black text-emerald-700 dark:text-emerald-400 font-mono tabular-nums mt-1 block">
             {customers.length > 0 
               ? `${Math.round(((customers.length - delinquentCustomers.length) / customers.length) * 100)}%`
               : '100%'}
           </span>
-          <span className="text-[11px] text-slate-500 mt-1 block">
+          <span className="text-[11px] text-slate-400 mt-1 block">
             Clientes em situação regular
           </span>
         </div>
       </div>
 
       {bulkDispatchSuccess && (
-        <div className="p-3 bg-amber-500/15 border border-amber-500/40 rounded-xl text-xs text-amber-300 flex items-center gap-2 animate-in fade-in">
-          <Volume2 className="w-4 h-4 text-amber-400 shrink-0" />
+        <div className="p-3 bg-amber-50 dark:bg-amber-500/15 border border-amber-300 dark:border-amber-500/40 rounded-xl text-xs text-amber-900 dark:text-amber-300 flex items-center gap-2">
+          <Volume2 className="w-4 h-4 text-amber-600 shrink-0" />
           <span>{bulkDispatchSuccess}</span>
         </div>
       )}
@@ -269,39 +268,39 @@ export const CustomersView: React.FC = () => {
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Buscar por nome, time, camisa ou WhatsApp..."
-            className="w-full bg-slate-900 border border-slate-800 rounded-xl pl-10 pr-4 py-2.5 text-xs sm:text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500/30 transition-all"
+            className="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl pl-10 pr-4 py-2.5 text-xs sm:text-sm text-slate-900 dark:text-slate-100 placeholder-slate-400 focus:outline-none focus:border-emerald-600 focus:ring-2 focus:ring-emerald-500/20 transition-all shadow-xs"
           />
         </div>
 
-        <div className="flex items-center gap-1 p-1 bg-slate-900 border border-slate-800 rounded-xl overflow-x-auto">
+        <div className="flex items-center gap-1 p-1 bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl overflow-x-auto">
           <button
             onClick={() => setStatusFilter('todos')}
-            className={`px-3 py-1.5 text-xs font-semibold rounded-lg whitespace-nowrap transition-colors ${
-              statusFilter === 'todos' ? 'bg-emerald-600 text-white' : 'text-slate-400 hover:text-white'
+            className={`px-3 py-1.5 text-xs font-bold rounded-lg whitespace-nowrap transition-colors ${
+              statusFilter === 'todos' ? 'bg-white dark:bg-slate-800 text-slate-900 dark:text-white shadow-xs' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900'
             }`}
           >
             Todos ({customers.length})
           </button>
           <button
             onClick={() => setStatusFilter('com_debito')}
-            className={`px-3 py-1.5 text-xs font-semibold rounded-lg whitespace-nowrap transition-colors ${
-              statusFilter === 'com_debito' ? 'bg-emerald-600 text-white' : 'text-slate-400 hover:text-white'
+            className={`px-3 py-1.5 text-xs font-bold rounded-lg whitespace-nowrap transition-colors ${
+              statusFilter === 'com_debito' ? 'bg-white dark:bg-slate-800 text-slate-900 dark:text-white shadow-xs' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900'
             }`}
           >
             Com Débito ({customers.filter((c) => c.totalDebt > 0).length})
           </button>
           <button
             onClick={() => setStatusFilter('inadimplente')}
-            className={`px-3 py-1.5 text-xs font-semibold rounded-lg whitespace-nowrap transition-colors ${
-              statusFilter === 'inadimplente' ? 'bg-emerald-600 text-white' : 'text-slate-400 hover:text-white'
+            className={`px-3 py-1.5 text-xs font-bold rounded-lg whitespace-nowrap transition-colors ${
+              statusFilter === 'inadimplente' ? 'bg-white dark:bg-slate-800 text-slate-900 dark:text-white shadow-xs' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900'
             }`}
           >
             Inadimplentes ({delinquentCustomers.length})
           </button>
           <button
             onClick={() => setStatusFilter('em_dia')}
-            className={`px-3 py-1.5 text-xs font-semibold rounded-lg whitespace-nowrap transition-colors ${
-              statusFilter === 'em_dia' ? 'bg-emerald-600 text-white' : 'text-slate-400 hover:text-white'
+            className={`px-3 py-1.5 text-xs font-bold rounded-lg whitespace-nowrap transition-colors ${
+              statusFilter === 'em_dia' ? 'bg-white dark:bg-slate-800 text-slate-900 dark:text-white shadow-xs' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900'
             }`}
           >
             Em Dia ({customers.filter((c) => c.totalDebt === 0).length})
@@ -312,7 +311,7 @@ export const CustomersView: React.FC = () => {
       {/* Customer Cards Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {filteredCustomers.length === 0 ? (
-          <div className="col-span-full py-12 text-center text-slate-500 text-xs">
+          <div className="col-span-full py-12 text-center text-slate-400 text-xs">
             Nenhum cliente encontrado com os filtros aplicados.
           </div>
         ) : (
@@ -324,57 +323,57 @@ export const CustomersView: React.FC = () => {
             return (
               <div
                 key={cust.id}
-                className="bg-slate-900/90 border border-slate-800 hover:border-slate-700/80 rounded-2xl p-4.5 flex flex-col justify-between transition-all duration-150 shadow-md hover:shadow-lg"
+                className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700 rounded-3xl p-5 flex flex-col justify-between transition-all shadow-xs hover:shadow-md"
               >
                 <div>
                   {/* Top: Avatar Monogram, Name & Status */}
                   <div className="flex items-start gap-3">
-                    <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-slate-800 to-slate-900 border border-slate-700/80 flex items-center justify-center text-xs font-extrabold text-emerald-400 font-mono shrink-0 shadow-inner">
+                    <div className="w-11 h-11 rounded-2xl bg-gradient-to-br from-emerald-100 to-teal-50 dark:from-slate-800 dark:to-slate-900 border border-emerald-200 dark:border-slate-700 flex items-center justify-center text-xs font-black text-emerald-800 dark:text-emerald-400 font-mono shrink-0 shadow-xs">
                       {getInitials(cust.name)}
                     </div>
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center justify-between gap-1">
-                        <h3 className="text-sm font-bold text-white truncate">
+                        <h3 className="text-sm font-extrabold text-slate-900 dark:text-white truncate">
                           {cust.name}
                         </h3>
                         <span
-                          className={`text-[10px] font-bold px-2 py-0.5 rounded-md uppercase tracking-wider shrink-0 ${
+                          className={`text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider shrink-0 ${
                             !hasDebt
-                              ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
+                              ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-500/20'
                               : isOverdue
-                              ? 'bg-rose-500/10 text-rose-400 border border-rose-500/20'
-                              : 'bg-amber-500/10 text-amber-400 border border-amber-500/20'
+                              ? 'bg-rose-50 text-rose-700 dark:bg-rose-500/10 dark:text-rose-400 border border-rose-200 dark:border-rose-500/20'
+                              : 'bg-amber-50 text-amber-700 dark:bg-amber-500/10 dark:text-amber-400 border border-amber-200 dark:border-amber-500/20'
                           }`}
                         >
                           {!hasDebt ? 'Em Dia' : isOverdue ? 'Atrasado' : 'A Vencer'}
                         </span>
                       </div>
-                      <span className="text-xs text-slate-400 block truncate mt-0.5">
+                      <span className="text-xs text-slate-500 dark:text-slate-400 block truncate mt-0.5">
                         {cust.teamOrShirt}
                       </span>
                     </div>
                   </div>
 
                   {/* Phone & Last Reminder */}
-                  <div className="mt-3 text-xs text-slate-400 flex items-center justify-between border-t border-slate-800/60 pt-2.5">
+                  <div className="mt-3 text-xs text-slate-500 dark:text-slate-400 flex items-center justify-between border-t border-slate-100 dark:border-slate-800 pt-2.5">
                     <span className="flex items-center gap-1.5 font-mono">
-                      <Phone className="w-3 h-3 text-slate-500" />
+                      <Phone className="w-3.5 h-3.5 text-slate-400" />
                       {formatPhone(cust.phone)}
                     </span>
                     {cust.lastReminderDate && (
-                      <span className="text-[10px] text-slate-500">
+                      <span className="text-[10px] text-slate-400">
                         Cobrado {new Date(cust.lastReminderDate).toLocaleDateString('pt-BR')}
                       </span>
                     )}
                   </div>
 
                   {/* Debt Balance Box */}
-                  <div className="mt-3 p-3.5 bg-slate-950/80 rounded-xl border border-slate-800/80 space-y-2.5">
+                  <div className="mt-3.5 p-3.5 bg-slate-50 dark:bg-slate-950/80 rounded-2xl border border-slate-200/80 dark:border-slate-800 space-y-2.5">
                     <div className="flex items-baseline justify-between">
-                      <span className="text-xs text-slate-400">Saldo Devedor:</span>
+                      <span className="text-xs text-slate-500 dark:text-slate-400">Saldo Devedor:</span>
                       <span
                         className={`text-lg font-black font-mono tabular-nums ${
-                          hasDebt ? (isOverdue ? 'text-rose-400' : 'text-amber-400') : 'text-slate-400'
+                          hasDebt ? (isOverdue ? 'text-rose-600 dark:text-rose-400' : 'text-amber-600 dark:text-amber-400') : 'text-slate-400'
                         }`}
                       >
                         {formatBRL(cust.totalDebt)}
@@ -383,11 +382,11 @@ export const CustomersView: React.FC = () => {
 
                     {/* Credit Limit Progress */}
                     <div>
-                      <div className="flex justify-between text-[11px] text-slate-400 mb-1 font-mono">
+                      <div className="flex justify-between text-[11px] text-slate-500 dark:text-slate-400 mb-1 font-mono">
                         <span>Limite: {formatBRL(cust.creditLimit)}</span>
-                        <span className="font-semibold">{limitUsagePercent}% usado</span>
+                        <span className="font-bold">{limitUsagePercent}% usado</span>
                       </div>
-                      <div className="w-full h-1.5 bg-slate-800 rounded-full overflow-hidden">
+                      <div className="w-full h-1.5 bg-slate-200 dark:bg-slate-800 rounded-full overflow-hidden">
                         <div
                           className={`h-full transition-all duration-300 ${
                             limitUsagePercent > 80
@@ -403,30 +402,30 @@ export const CustomersView: React.FC = () => {
                   </div>
 
                   {cust.notes && (
-                    <p className="text-[11px] text-slate-400 italic mt-2.5 line-clamp-1">
+                    <p className="text-[11px] text-slate-500 dark:text-slate-400 italic mt-2.5 line-clamp-1">
                       "{cust.notes}"
                     </p>
                   )}
                 </div>
 
                 {/* Bottom Actions */}
-                <div className="mt-4 pt-3.5 border-t border-slate-800/80 space-y-2">
+                <div className="mt-4 pt-3.5 border-t border-slate-100 dark:border-slate-800 space-y-2">
                   {hasDebt ? (
                     <div className="grid grid-cols-2 gap-2">
                       <button
                         type="button"
                         onClick={() => setSelectedCustomerForNotice(cust)}
-                        className="py-2 px-3 rounded-xl bg-teal-600 hover:bg-teal-500 text-white text-xs font-bold flex items-center justify-center gap-1.5 transition-colors shadow-xs active:scale-95"
+                        className="py-2.5 px-3 rounded-xl bg-teal-600 hover:bg-teal-500 text-white text-xs font-bold flex items-center justify-center gap-1.5 transition-colors shadow-xs active:scale-95"
                         title="Enviar mensagem amigável de cobrança via WhatsApp"
                       >
-                        <MessageCircle className="w-3.5 h-3.5 text-teal-200" />
+                        <MessageCircle className="w-3.5 h-3.5" />
                         <span>Cobrar Whats</span>
                       </button>
 
                       <button
                         type="button"
                         onClick={() => setSelectedCustomerForPix(cust)}
-                        className="py-2 px-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-extrabold flex items-center justify-center gap-1.5 transition-colors shadow-xs active:scale-95"
+                        className="py-2.5 px-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-extrabold flex items-center justify-center gap-1.5 transition-colors shadow-xs active:scale-95"
                         title="Gerar QR Code PIX para quitação"
                       >
                         <QrCode className="w-3.5 h-3.5" />
@@ -434,20 +433,20 @@ export const CustomersView: React.FC = () => {
                       </button>
                     </div>
                   ) : (
-                    <div className="py-2 text-center text-xs text-emerald-400 flex items-center justify-center gap-1.5 font-semibold">
+                    <div className="py-2 text-center text-xs text-emerald-700 dark:text-emerald-400 flex items-center justify-center gap-1.5 font-bold">
                       <CheckCircle className="w-4 h-4" />
                       Conta zerada · Crédito liberado
                     </div>
                   )}
 
-                  <div className="flex items-center justify-between text-[11px] text-slate-400 pt-1">
+                  <div className="flex items-center justify-between text-[11px] text-slate-500 dark:text-slate-400 pt-1">
                     <button
                       type="button"
                       onClick={() => handleSendPushNotice(cust)}
-                      className="hover:text-slate-200 transition-colors flex items-center gap-1"
+                      className="hover:text-slate-800 dark:hover:text-slate-200 transition-colors flex items-center gap-1"
                       title="Disparar notificação push imediata"
                     >
-                      <Send className="w-3 h-3 text-slate-500" />
+                      <Send className="w-3 h-3 text-slate-400" />
                       Disparar Push
                     </button>
 
@@ -458,9 +457,9 @@ export const CustomersView: React.FC = () => {
                           setSelectedCustomerForCash(cust);
                           setCashAmountToSettle(String(cust.totalDebt));
                         }}
-                        className="hover:text-emerald-400 transition-colors flex items-center gap-1"
+                        className="hover:text-emerald-700 dark:hover:text-emerald-400 transition-colors flex items-center gap-1 font-semibold"
                       >
-                        <Banknote className="w-3 h-3 text-emerald-500" />
+                        <Banknote className="w-3.5 h-3.5 text-emerald-600" />
                         Receber Dinheiro
                       </button>
                     )}
@@ -474,24 +473,24 @@ export const CustomersView: React.FC = () => {
 
       {/* Modal: Cadastrar Novo Cliente */}
       {isAddCustomerOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-150">
-          <div className="w-full max-w-md bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-2xl text-slate-100 relative">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-150">
+          <div className="w-full max-w-md bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 shadow-2xl text-slate-900 dark:text-slate-100 relative">
             <button
               onClick={() => setIsAddCustomerOpen(false)}
-              className="absolute top-4 right-4 p-1.5 text-slate-400 hover:text-white rounded-lg hover:bg-slate-800"
+              className="absolute top-4 right-4 p-2 text-slate-400 hover:text-slate-700 dark:hover:text-white rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800"
             >
               <X className="w-5 h-5" />
             </button>
 
             <div className="flex items-center gap-3 mb-4">
-              <div className="w-10 h-10 rounded-xl bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-emerald-400">
+              <div className="w-10 h-10 rounded-2xl bg-emerald-50 dark:bg-emerald-500/10 border border-emerald-200 dark:border-emerald-500/20 flex items-center justify-center text-emerald-600 dark:text-emerald-400">
                 <UserPlus className="w-5 h-5" />
               </div>
               <div>
-                <h3 className="text-base font-bold text-white tracking-tight">
+                <h3 className="text-base font-extrabold text-slate-900 dark:text-white tracking-tight">
                   Cadastrar Cliente no Campeonato
                 </h3>
-                <p className="text-xs text-slate-400">
+                <p className="text-xs text-slate-500 dark:text-slate-400">
                   Crie a ficha para liberação de comanda e fiado
                 </p>
               </div>
@@ -499,7 +498,7 @@ export const CustomersView: React.FC = () => {
 
             <form onSubmit={handleCreateCustomer} className="space-y-3.5">
               <div>
-                <label className="text-xs font-semibold text-slate-300 block mb-1">
+                <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 block mb-1">
                   Nome Completo / Apelido *
                 </label>
                 <input
@@ -508,13 +507,13 @@ export const CustomersView: React.FC = () => {
                   value={formName}
                   onChange={(e) => setFormName(e.target.value)}
                   placeholder="Ex: Paulinho da Zaga"
-                  className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-emerald-500"
+                  className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-700 rounded-xl px-3 py-2 text-xs text-slate-900 dark:text-white focus:outline-none focus:border-emerald-600"
                 />
               </div>
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="text-xs font-semibold text-slate-300 block mb-1">
+                  <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 block mb-1">
                     WhatsApp (com DDD) *
                   </label>
                   <input
@@ -523,12 +522,12 @@ export const CustomersView: React.FC = () => {
                     value={formPhone}
                     onChange={(e) => setFormPhone(e.target.value)}
                     placeholder="11988887777"
-                    className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-emerald-500"
+                    className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-700 rounded-xl px-3 py-2 text-xs text-slate-900 dark:text-white focus:outline-none focus:border-emerald-600"
                   />
                 </div>
 
                 <div>
-                  <label className="text-xs font-semibold text-slate-300 block mb-1">
+                  <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 block mb-1">
                     Limite de Fiado (R$)
                   </label>
                   <input
@@ -537,13 +536,13 @@ export const CustomersView: React.FC = () => {
                     value={formCreditLimit}
                     onChange={(e) => setFormCreditLimit(e.target.value)}
                     placeholder="150.00"
-                    className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white font-mono focus:outline-none focus:border-emerald-500"
+                    className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-700 rounded-xl px-3 py-2 text-xs text-slate-900 dark:text-white font-mono focus:outline-none focus:border-emerald-600"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="text-xs font-semibold text-slate-300 block mb-1">
+                <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 block mb-1">
                   Time / Camisa / Função no Torneio
                 </label>
                 <input
@@ -551,12 +550,12 @@ export const CustomersView: React.FC = () => {
                   value={formTeam}
                   onChange={(e) => setFormTeam(e.target.value)}
                   placeholder="Ex: Camisa 7 - Real Madruga FC / Torcedor / Árbitro"
-                  className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-emerald-500"
+                  className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-700 rounded-xl px-3 py-2 text-xs text-slate-900 dark:text-white focus:outline-none focus:border-emerald-600"
                 />
               </div>
 
               <div>
-                <label className="text-xs font-semibold text-slate-300 block mb-1">
+                <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 block mb-1">
                   Observações (Opcional)
                 </label>
                 <textarea
@@ -564,7 +563,7 @@ export const CustomersView: React.FC = () => {
                   value={formNotes}
                   onChange={(e) => setFormNotes(e.target.value)}
                   placeholder="Ex: Acerta sempre após o jogo de domingo..."
-                  className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-emerald-500 resize-none"
+                  className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-700 rounded-xl px-3 py-2 text-xs text-slate-900 dark:text-white focus:outline-none focus:border-emerald-600 resize-none"
                 />
               </div>
 
@@ -572,13 +571,13 @@ export const CustomersView: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => setIsAddCustomerOpen(false)}
-                  className="flex-1 py-2.5 rounded-xl border border-slate-700 text-xs font-semibold text-slate-300 hover:bg-slate-800"
+                  className="flex-1 py-2.5 rounded-xl border border-slate-300 dark:border-slate-700 text-xs font-bold text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800"
                 >
                   Cancelar
                 </button>
                 <button
                   type="submit"
-                  className="flex-1 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-xs font-bold text-white shadow-md shadow-emerald-950/40"
+                  className="flex-1 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-xs font-black text-white shadow-xs"
                 >
                   Salvar Cliente
                 </button>
@@ -590,26 +589,26 @@ export const CustomersView: React.FC = () => {
 
       {/* Modal: Enviar Cobrança WhatsApp com templates esportivos */}
       {selectedCustomerForNotice && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-150">
-          <div className="w-full max-w-lg bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-2xl text-slate-100 relative max-h-[90vh] overflow-y-auto">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-150">
+          <div className="w-full max-w-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 shadow-2xl text-slate-900 dark:text-slate-100 relative max-h-[90vh] overflow-y-auto">
             <button
               onClick={() => setSelectedCustomerForNotice(null)}
-              className="absolute top-4 right-4 p-1.5 text-slate-400 hover:text-white rounded-lg hover:bg-slate-800"
+              className="absolute top-4 right-4 p-2 text-slate-400 hover:text-slate-700 dark:hover:text-white rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800"
             >
               <X className="w-5 h-5" />
             </button>
 
             <div className="flex items-center gap-3 mb-4">
-              <div className="w-10 h-10 rounded-xl bg-teal-500/10 border border-teal-500/30 flex items-center justify-center text-teal-400">
+              <div className="w-10 h-10 rounded-2xl bg-teal-50 dark:bg-teal-500/10 border border-teal-200 dark:border-teal-500/20 flex items-center justify-center text-teal-600 dark:text-teal-400">
                 <MessageCircle className="w-5 h-5" />
               </div>
               <div>
-                <h3 className="text-base font-bold text-white">
+                <h3 className="text-base font-extrabold text-slate-900 dark:text-white">
                   Mandar Mensagem de Cobrança
                 </h3>
-                <p className="text-xs text-slate-400">
+                <p className="text-xs text-slate-500 dark:text-slate-400">
                   {selectedCustomerForNotice.name} · Saldo Devedor:{' '}
-                  <strong className="text-amber-400 font-mono">
+                  <strong className="text-amber-600 dark:text-amber-400 font-mono">
                     {formatBRL(selectedCustomerForNotice.totalDebt)}
                   </strong>
                 </p>
@@ -618,7 +617,7 @@ export const CustomersView: React.FC = () => {
 
             {/* Template Selector */}
             <div className="space-y-2 mb-4">
-              <label className="text-xs font-semibold text-slate-300 block">
+              <label className="text-xs font-bold text-slate-700 dark:text-slate-300 block">
                 Escolha o Modelo de Mensagem:
               </label>
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
@@ -629,12 +628,12 @@ export const CustomersView: React.FC = () => {
                     onClick={() => setSelectedTemplateId(tmpl.id)}
                     className={`p-2.5 rounded-xl border text-left transition-all ${
                       selectedTemplateId === tmpl.id
-                        ? 'bg-teal-500/20 border-teal-400 text-teal-200 shadow-sm'
-                        : 'bg-slate-950/60 border-slate-800 text-slate-400 hover:text-slate-200'
+                        ? 'bg-teal-50 dark:bg-teal-500/20 border-teal-500 text-teal-900 dark:text-teal-200 shadow-xs'
+                        : 'bg-slate-50 dark:bg-slate-950/60 border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400'
                     }`}
                   >
                     <span className="text-xs font-bold block">{tmpl.title}</span>
-                    <span className="text-[10px] text-slate-400 block mt-0.5 line-clamp-2">
+                    <span className="text-[10px] text-slate-500 dark:text-slate-400 block mt-0.5 line-clamp-2">
                       {tmpl.description}
                     </span>
                   </button>
@@ -644,10 +643,10 @@ export const CustomersView: React.FC = () => {
 
             {/* Message Preview styled like WhatsApp */}
             <div className="space-y-1.5 mb-5">
-              <span className="text-xs font-semibold text-slate-300 block">
+              <span className="text-xs font-bold text-slate-700 dark:text-slate-300 block">
                 Pré-visualização da mensagem no WhatsApp (com Chave e Copia e Cola):
               </span>
-              <div className="bg-[#0b141a] border border-[#202c33] p-4 rounded-xl text-xs text-slate-200 font-sans whitespace-pre-wrap leading-relaxed max-h-52 overflow-y-auto shadow-inner relative">
+              <div className="bg-[#0b141a] border border-[#202c33] p-4 rounded-2xl text-xs text-slate-200 font-sans whitespace-pre-wrap leading-relaxed max-h-52 overflow-y-auto shadow-inner relative">
                 {generatedMessagePreview}
                 <div className="text-right text-[10px] text-slate-500 font-mono mt-2 flex items-center justify-end gap-1">
                   <span>Agora</span>
@@ -661,14 +660,14 @@ export const CustomersView: React.FC = () => {
               <button
                 type="button"
                 onClick={() => setSelectedCustomerForNotice(null)}
-                className="flex-1 py-2.5 rounded-xl border border-slate-700 text-xs font-semibold text-slate-300 hover:bg-slate-800"
+                className="flex-1 py-2.5 rounded-xl border border-slate-300 dark:border-slate-700 text-xs font-bold text-slate-600 dark:text-slate-300 hover:bg-slate-100"
               >
                 Voltar
               </button>
               <button
                 type="button"
                 onClick={() => handleSendWhatsApp(selectedCustomerForNotice, generatedMessagePreview)}
-                className="flex-2 py-2.5 px-4 rounded-xl bg-[#25D366] hover:bg-[#20ba59] text-xs font-bold text-slate-950 flex items-center justify-center gap-2 shadow-lg shadow-emerald-950/50 transition-all active:scale-95"
+                className="flex-2 py-2.5 px-4 rounded-xl bg-[#25D366] hover:bg-[#20ba59] text-xs font-black text-slate-950 flex items-center justify-center gap-2 shadow-md transition-all active:scale-95"
               >
                 <Send className="w-4 h-4" />
                 Abrir WhatsApp e Enviar Cobrança
@@ -700,22 +699,22 @@ export const CustomersView: React.FC = () => {
 
       {/* Cash Settlement Modal */}
       {selectedCustomerForCash && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-150">
-          <div className="w-full max-w-sm bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-2xl text-slate-100">
-            <h3 className="text-base font-bold text-white flex items-center gap-2 mb-3">
-              <Banknote className="w-5 h-5 text-emerald-400" />
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-150">
+          <div className="w-full max-w-sm bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 shadow-2xl text-slate-900 dark:text-slate-100">
+            <h3 className="text-base font-extrabold text-slate-900 dark:text-white flex items-center gap-2 mb-3">
+              <Banknote className="w-5 h-5 text-emerald-600" />
               Receber Quitação em Dinheiro
             </h3>
-            <p className="text-xs text-slate-400 mb-3">
-              Cliente: <strong className="text-white">{selectedCustomerForCash.name}</strong> · Débito Total:{' '}
-              <strong className="text-amber-400 font-mono">
+            <p className="text-xs text-slate-500 dark:text-slate-400 mb-3">
+              Cliente: <strong className="text-slate-900 dark:text-white">{selectedCustomerForCash.name}</strong> · Débito Total:{' '}
+              <strong className="text-amber-600 dark:text-amber-400 font-mono">
                 {formatBRL(selectedCustomerForCash.totalDebt)}
               </strong>
             </p>
 
             <form onSubmit={handleSettleCash} className="space-y-4">
               <div>
-                <label className="text-xs text-slate-400 block mb-1">Valor Recebido (R$)</label>
+                <label className="text-xs text-slate-700 dark:text-slate-300 block mb-1">Valor Recebido (R$)</label>
                 <input
                   type="number"
                   step="any"
@@ -723,7 +722,7 @@ export const CustomersView: React.FC = () => {
                   value={cashAmountToSettle}
                   onChange={(e) => setCashAmountToSettle(e.target.value)}
                   max={selectedCustomerForCash.totalDebt}
-                  className="w-full bg-slate-950 border border-slate-700 rounded-xl p-2.5 text-sm text-emerald-400 font-mono font-bold focus:outline-none focus:border-emerald-500"
+                  className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-700 rounded-xl p-2.5 text-base text-emerald-700 dark:text-emerald-400 font-mono font-black focus:outline-none focus:border-emerald-600"
                 />
               </div>
 
@@ -731,13 +730,13 @@ export const CustomersView: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => setSelectedCustomerForCash(null)}
-                  className="flex-1 py-2 rounded-xl border border-slate-700 text-xs text-slate-300"
+                  className="flex-1 py-2.5 rounded-xl border border-slate-300 dark:border-slate-700 text-xs font-bold text-slate-600 dark:text-slate-300"
                 >
                   Cancelar
                 </button>
                 <button
                   type="submit"
-                  className="flex-1 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-xs font-bold text-white"
+                  className="flex-1 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-xs font-black text-white"
                 >
                   Confirmar Baixa
                 </button>
