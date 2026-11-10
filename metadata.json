@@ -1,0 +1,6 @@
+{
+  "name": "Arena Gol - Gestão de Barraca & Finanças",
+  "description": "Sistema completo de vendas de comidas e bebidas em campeonatos de futebol: PDV ágil, controle de estoque em tempo real, área restrita do administrador, fluxo de caixa, gestão de clientes e fiado, cobranças com push e WhatsApp, relatórios de inadimplência e integração com PIX.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

@@ -1,0 +1,178 @@
+import React from 'react';
+import { 
+  X, 
+  Bell, 
+  AlertTriangle, 
+  CheckCircle, 
+  Smartphone, 
+  Volume2, 
+  Info,
+  CheckCheck
+} from 'lucide-react';
+import { useApp } from '../context/AppContext';
+import { triggerBrowserPushNotification, playNotificationSound } from '../utils/messaging';
+
+interface NotificationCenterProps {
+  isOpen: boolean;
+  onClose: () => void;
+}
+
+export const NotificationCenter: React.FC<NotificationCenterProps> = ({ isOpen, onClose }) => {
+  const { 
+    notifications, 
+    markNotificationAsRead, 
+    markAllNotificationsAsRead, 
+    addNotification 
+  } = useApp();
+
+  if (!isOpen) return null;
+
+  const handleRequestPushPermission = async () => {
+    if (!('Notification' in window)) {
+      alert('Seu navegador não suporta a API de notificações push nativas.');
+      return;
+    }
+    const permission = await Notification.requestPermission();
+    if (permission === 'granted') {
+      addNotification(
+        '🔔 Notificações Push Ativadas!',
+        'Você agora receberá alertas instantâneos de cobranças e estoque mesmo com a aba minimizada.',
+        'sistema'
+      );
+    }
+  };
+
+  const handleTestNotification = () => {
+    playNotificationSound('push');
+    triggerBrowserPushNotification(
+      '⚽ Arena Gol: Alerta de Cobrança',
+      'Cobrança PIX disparada com sucesso para Betão do Camisa 10 (R$ 98,00).'
+    );
+    addNotification(
+      '⚽ Teste de Notificação Push',
+      'Disparo de cobrança e alerta sonoro emitidos com sucesso!',
+      'cobranca'
+    );
+  };
+
+  const getIconForType = (type: string) => {
+    switch (type) {
+      case 'cobranca':
+        return <Smartphone className="w-4 h-4 text-amber-400" />;
+      case 'estoque':
+        return <AlertTriangle className="w-4 h-4 text-rose-400" />;
+      case 'pix':
+        return <CheckCircle className="w-4 h-4 text-emerald-400" />;
+      default:
+        return <Info className="w-4 h-4 text-cyan-400" />;
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 flex justify-end bg-black/60 backdrop-blur-xs animate-in fade-in duration-200">
+      <div className="w-full max-w-md bg-slate-900 border-l border-slate-800 h-full flex flex-col shadow-2xl text-slate-100">
+        {/* Header */}
+        <div className="p-4 border-b border-slate-800 flex items-center justify-between">
+          <div className="flex items-center gap-2.5">
+            <div className="w-8 h-8 rounded-lg bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400">
+              <Bell className="w-4 h-4" />
+            </div>
+            <div>
+              <h3 className="text-sm font-bold text-white tracking-tight">
+                Notificações &amp; Cobranças
+              </h3>
+              <p className="text-[11px] text-slate-400">
+                Histórico em tempo real de disparos e alertas
+              </p>
+            </div>
+          </div>
+          <button
+            onClick={onClose}
+            className="p-1.5 text-slate-400 hover:text-white rounded-lg hover:bg-slate-800 transition-colors"
+          >
+            <X className="w-5 h-5" />
+          </button>
+        </div>
+
+        {/* Action Toolbar */}
+        <div className="px-4 py-3 bg-slate-950/60 border-b border-slate-800 flex flex-wrap items-center justify-between gap-2">
+          <button
+            type="button"
+            onClick={handleRequestPushPermission}
+            className="text-xs font-semibold px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 transition-colors flex items-center gap-1.5"
+          >
+            <Smartphone className="w-3.5 h-3.5 text-teal-400" />
+            Permitir Push
+          </button>
+          <button
+            type="button"
+            onClick={handleTestNotification}
+            className="text-xs font-semibold px-2.5 py-1.5 rounded-lg bg-teal-600 hover:bg-teal-500 text-white transition-colors flex items-center gap-1.5"
+          >
+            <Volume2 className="w-3.5 h-3.5" />
+            Testar Alerta Sonoro
+          </button>
+          {notifications.length > 0 && (
+            <button
+              type="button"
+              onClick={markAllNotificationsAsRead}
+              className="text-[11px] text-slate-400 hover:text-white flex items-center gap-1"
+            >
+              <CheckCheck className="w-3.5 h-3.5" />
+              Lidas
+            </button>
+          )}
+        </div>
+
+        {/* Notification List */}
+        <div className="flex-1 overflow-y-auto p-4 space-y-3">
+          {notifications.length === 0 ? (
+            <div className="h-48 flex flex-col items-center justify-center text-center text-slate-500">
+              <Bell className="w-8 h-8 mb-2 opacity-30" />
+              <p className="text-xs">Nenhuma notificação no momento.</p>
+            </div>
+          ) : (
+            notifications.map((notif) => (
+              <div
+                key={notif.id}
+                onClick={() => markNotificationAsRead(notif.id)}
+                className={`p-3 rounded-xl border transition-all cursor-pointer ${
+                  notif.read
+                    ? 'bg-slate-900/60 border-slate-800 text-slate-400'
+                    : 'bg-slate-800/80 border-slate-700 text-slate-200 shadow-sm'
+                }`}
+              >
+                <div className="flex items-start gap-2.5">
+                  <div className="mt-0.5 shrink-0">{getIconForType(notif.type)}</div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center justify-between gap-2">
+                      <h4 className="text-xs font-semibold text-white truncate">
+                        {notif.title}
+                      </h4>
+                      <span className="text-[10px] text-slate-500 whitespace-nowrap font-mono">
+                        {new Date(notif.timestamp).toLocaleTimeString([], {
+                          hour: '2-digit',
+                          minute: '2-digit',
+                        })}
+                      </span>
+                    </div>
+                    <p className="text-xs text-slate-300 mt-1 leading-relaxed">
+                      {notif.body}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            ))
+          )}
+        </div>
+
+        {/* Footer info */}
+        <div className="p-3 bg-slate-950 border-t border-slate-800 text-center">
+          <span className="text-[11px] text-slate-500">
+            Push integrado com Web Notifications API &amp; Web Audio Chimes
+          </span>
+        </div>
+      </div>
+    </div>
+  );
+};
