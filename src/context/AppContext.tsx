@@ -20,9 +20,20 @@ import {
   INITIAL_NOTIFICATIONS 
 } from '../data/mockData';
 import { playNotificationSound, triggerBrowserPushNotification } from '../utils/messaging';
+import { 
+  db, 
+  validateFirestoreConnection, 
+  COLLECTIONS,
+  doc,
+  collection,
+  setDoc,
+  updateDoc,
+  onSnapshot,
+  writeBatch
+} from '../services/firebase';
 
 interface AppContextType {
-  // Navigation & Role
+  // Navigation & Role (Exclusivo do Dono)
   activeTab: 'pos' | 'customers' | 'cashflow' | 'inventory' | 'reports';
   setActiveTab: (tab: 'pos' | 'customers' | 'cashflow' | 'inventory' | 'reports') => void;
   isAdmin: boolean;
@@ -33,6 +44,10 @@ interface AppContextType {
   theme: 'light' | 'dark';
   toggleTheme: () => void;
 
+  // Real-time Database Status
+  isFirestoreConnected: boolean;
+  firestoreSyncStatus: 'synced' | 'syncing' | 'offline';
+
   // Cart
   cart: CartItem[];
   addToCart: (product: Product, quantity?: number) => void;
@@ -42,7 +57,7 @@ interface AppContextType {
   cartTotal: number;
   cartCost: number;
 
-  // Core Data
+  // Core Data (Synced with Firestore)
   products: Product[];
   customers: Customer[];
   sales: Sale[];
@@ -126,14 +141,16 @@ const STORAGE_KEYS = {
 const AppContext = createContext<AppContextType | undefined>(undefined);
 
 export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-  // Navigation & Role
+  // Navigation & Role - Sistema exclusivo do Dono (Admin ativo por padrão)
   const [activeTab, setActiveTab] = useState<'pos' | 'customers' | 'cashflow' | 'inventory' | 'reports'>('pos');
-  const [isAdmin, setIsAdmin] = useState<boolean>(() => {
-    return sessionStorage.getItem('arena_gol_admin_session') === 'active';
-  });
+  const [isAdmin, setIsAdmin] = useState<boolean>(true);
   const [adminPin, setAdminPinState] = useState<string>(() => {
     return localStorage.getItem(STORAGE_KEYS.ADMIN_PIN) || '1234';
   });
+
+  // Database status
+  const [isFirestoreConnected, setIsFirestoreConnected] = useState<boolean>(true);
+  const [firestoreSyncStatus, setFirestoreSyncStatus] = useState<'synced' | 'syncing' | 'offline'>('syncing');
 
   const [theme, setTheme] = useState<'light' | 'dark'>(() => {
     return (localStorage.getItem('arena_gol_theme') as 'light' | 'dark') || 'light';
@@ -152,7 +169,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     setTheme((prev) => (prev === 'light' ? 'dark' : 'light'));
   };
 
-  // Data Collections with LocalStorage caching
+  // Local storage cache states (servem de fallback e inicialização instantânea)
   const [products, setProducts] = useState<Product[]>(() => {
     const saved = localStorage.getItem(STORAGE_KEYS.PRODUCTS);
     if (!saved) return INITIAL_PRODUCTS;
@@ -162,7 +179,6 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
         const initial = INITIAL_PRODUCTS.find((ip) => ip.id === p.id);
         return {
           ...p,
-          // Always ensure default catalog products use the official high-res generated asset
           imageUrl: initial ? initial.imageUrl : (p.imageUrl || ''),
         };
       });
@@ -204,7 +220,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   // Cart
   const [cart, setCart] = useState<CartItem[]>([]);
 
-  // Sync with LocalStorage
+  // Sync to LocalStorage
   useEffect(() => {
     localStorage.setItem(STORAGE_KEYS.PRODUCTS, JSON.stringify(products));
   }, [products]);
@@ -234,18 +250,176 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   }, [notifications]);
 
   useEffect(() => {
-    localStorage.setItem(STORAGE_KEYS.IS_ADMIN, isAdmin ? 'true' : 'false');
-  }, [isAdmin]);
-
-  useEffect(() => {
     localStorage.setItem(STORAGE_KEYS.ADMIN_PIN, adminPin);
   }, [adminPin]);
 
-  // Admin PIN management
+  // Real-time Firestore Synchronizer
+  useEffect(() => {
+    let isMounted = true;
+
+    // 1. Check probe connection
+    validateFirestoreConnection()
+      .then((ok) => {
+        if (isMounted) {
+          setIsFirestoreConnected(ok);
+          setFirestoreSyncStatus(ok ? 'synced' : 'offline');
+        }
+      })
+      .catch(() => {
+        if (isMounted) {
+          setIsFirestoreConnected(false);
+          setFirestoreSyncStatus('offline');
+        }
+      });
+
+    // 2. Subscribe to Firestore Products
+    const unsubProducts = onSnapshot(
+      collection(db, COLLECTIONS.PRODUCTS),
+      (snapshot) => {
+        if (!isMounted) return;
+        if (snapshot.empty) {
+          // Initial Database Seeding on first run
+          const batch = writeBatch(db);
+          INITIAL_PRODUCTS.forEach((p) => {
+            batch.set(doc(db, COLLECTIONS.PRODUCTS, p.id), p);
+          });
+          batch.commit().catch(console.error);
+        } else {
+          const list: Product[] = [];
+          snapshot.forEach((d) => {
+            const data = d.data() as Product;
+            const initial = INITIAL_PRODUCTS.find((ip) => ip.id === data.id);
+            list.push({
+              ...data,
+              imageUrl: initial ? initial.imageUrl : (data.imageUrl || ''),
+            });
+          });
+          setProducts(list);
+          setFirestoreSyncStatus('synced');
+        }
+      },
+      (error) => {
+        console.warn('Firestore Products fallback to local:', error);
+        setFirestoreSyncStatus('offline');
+      }
+    );
+
+    // 3. Subscribe to Firestore Customers
+    const unsubCustomers = onSnapshot(
+      collection(db, COLLECTIONS.CUSTOMERS),
+      (snapshot) => {
+        if (!isMounted) return;
+        if (snapshot.empty) {
+          const batch = writeBatch(db);
+          INITIAL_CUSTOMERS.forEach((c) => {
+            batch.set(doc(db, COLLECTIONS.CUSTOMERS, c.id), c);
+          });
+          batch.commit().catch(console.error);
+        } else {
+          const list: Customer[] = [];
+          snapshot.forEach((d) => list.push(d.data() as Customer));
+          setCustomers(list);
+        }
+      },
+      (error) => {
+        console.warn('Firestore Customers fallback to local:', error);
+      }
+    );
+
+    // 4. Subscribe to Firestore Sales
+    const unsubSales = onSnapshot(
+      collection(db, COLLECTIONS.SALES),
+      (snapshot) => {
+        if (!isMounted) return;
+        if (snapshot.empty) {
+          const batch = writeBatch(db);
+          INITIAL_SALES.forEach((s) => {
+            batch.set(doc(db, COLLECTIONS.SALES, s.id), s);
+          });
+          batch.commit().catch(console.error);
+        } else {
+          const list: Sale[] = [];
+          snapshot.forEach((d) => list.push(d.data() as Sale));
+          list.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+          setSales(list);
+        }
+      },
+      (error) => {
+        console.warn('Firestore Sales fallback to local:', error);
+      }
+    );
+
+    // 5. Subscribe to Firestore Expenses
+    const unsubExpenses = onSnapshot(
+      collection(db, COLLECTIONS.EXPENSES),
+      (snapshot) => {
+        if (!isMounted) return;
+        if (snapshot.empty) {
+          const batch = writeBatch(db);
+          INITIAL_EXPENSES.forEach((e) => {
+            batch.set(doc(db, COLLECTIONS.EXPENSES, e.id), e);
+          });
+          batch.commit().catch(console.error);
+        } else {
+          const list: Expense[] = [];
+          snapshot.forEach((d) => list.push(d.data() as Expense));
+          list.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+          setExpenses(list);
+        }
+      },
+      (error) => {
+        console.warn('Firestore Expenses fallback to local:', error);
+      }
+    );
+
+    // 6. Subscribe to Firestore Debt Payments
+    const unsubPayments = onSnapshot(
+      collection(db, COLLECTIONS.DEBT_PAYMENTS),
+      (snapshot) => {
+        if (!isMounted) return;
+        if (!snapshot.empty) {
+          const list: DebtPayment[] = [];
+          snapshot.forEach((d) => list.push(d.data() as DebtPayment));
+          list.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+          setDebtPayments(list);
+        }
+      },
+      (error) => {
+        console.warn('Firestore Debt Payments fallback to local:', error);
+      }
+    );
+
+    // 7. Subscribe to PIX Config
+    const unsubPix = onSnapshot(
+      doc(db, COLLECTIONS.SETTINGS, 'pix_config'),
+      (snapshot) => {
+        if (!isMounted) return;
+        if (snapshot.exists()) {
+          setPixConfigState(snapshot.data() as PixConfig);
+        } else {
+          setDoc(doc(db, COLLECTIONS.SETTINGS, 'pix_config'), INITIAL_PIX_CONFIG).catch(console.error);
+        }
+      },
+      (error) => {
+        console.warn('Firestore PIX Config fallback to local:', error);
+      }
+    );
+
+    return () => {
+      isMounted = false;
+      unsubProducts();
+      unsubCustomers();
+      unsubSales();
+      unsubExpenses();
+      unsubPayments();
+      unsubPix();
+    };
+  }, []);
+
+  // Admin PIN management (opcional para proteger a tela se o dono se ausentar)
   const unlockAdmin = (pin: string): boolean => {
     if (pin.trim() === adminPin.trim()) {
       setIsAdmin(true);
-      sessionStorage.setItem('arena_gol_admin_session', 'active');
       playNotificationSound('success');
       return true;
     }
@@ -255,9 +429,6 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
 
   const lockAdmin = () => {
     setIsAdmin(false);
-    sessionStorage.removeItem('arena_gol_admin_session');
-    localStorage.removeItem(STORAGE_KEYS.IS_ADMIN);
-    // If on a restricted tab, go back to POS immediately
     if (['cashflow', 'reports'].includes(activeTab)) {
       setActiveTab('pos');
     }
@@ -269,6 +440,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
 
   const setPixConfig = (newConfig: PixConfig) => {
     setPixConfigState(newConfig);
+    setDoc(doc(db, COLLECTIONS.SETTINGS, 'pix_config'), newConfig).catch(console.error);
   };
 
   // Cart management
@@ -284,6 +456,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       }
       return [...prev, { product, quantity }];
     });
+    playNotificationSound('push');
   };
 
   const removeFromCart = (productId: string) => {
@@ -341,7 +514,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     return notifications.filter((n) => !n.read).length;
   }, [notifications]);
 
-  // Make Sale: Real-time stock decrement, cart clearing, fiado debit
+  // Make Sale: Real-time stock decrement, cart clearing, fiado debit + Firestore Write
   const makeSale = ({
     paymentMethod,
     customerId,
@@ -414,7 +587,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       notes,
     };
 
-    // 1. Decrement Stock
+    // 1. Decrement Stock local and remote
     const lowStockAlerts: { name: string; remaining: number }[] = [];
     setProducts((prev) =>
       prev.map((prod) => {
@@ -424,6 +597,11 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
           if (newQty <= prod.minStockThreshold) {
             lowStockAlerts.push({ name: prod.name, remaining: newQty });
           }
+          // Firestore update
+          updateDoc(doc(db, COLLECTIONS.PRODUCTS, prod.id), {
+            stockQuantity: newQty,
+          }).catch(console.error);
+
           return { ...prod, stockQuantity: newQty };
         }
         return prod;
@@ -432,24 +610,25 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
 
     // 2. If fiado, update customer totalDebt and status
     if (paymentMethod === 'fiado' && selectedCustomer) {
+      const newTotalDebt = selectedCustomer.totalDebt + totalAmount;
+      const updatedStatus = newTotalDebt > 0 ? (selectedCustomer.status === 'inadimplente' ? 'inadimplente' : 'em_dia') : 'em_dia';
+      const updatedCustomer: Partial<Customer> = {
+        totalDebt: newTotalDebt,
+        lastPurchaseDate: new Date().toISOString(),
+        status: updatedStatus,
+      };
+
       setCustomers((prev) =>
-        prev.map((c) => {
-          if (c.id === selectedCustomer!.id) {
-            const newTotalDebt = c.totalDebt + totalAmount;
-            return {
-              ...c,
-              totalDebt: newTotalDebt,
-              lastPurchaseDate: new Date().toISOString(),
-              status: newTotalDebt > 0 ? (c.status === 'inadimplente' ? 'inadimplente' : 'em_dia') : 'em_dia',
-            };
-          }
-          return c;
-        })
+        prev.map((c) => (c.id === selectedCustomer!.id ? { ...c, ...updatedCustomer } : c))
       );
+
+      updateDoc(doc(db, COLLECTIONS.CUSTOMERS, selectedCustomer.id), updatedCustomer).catch(console.error);
     }
 
-    // 3. Record Sale
+    // 3. Record Sale to Firestore & Local
     setSales((prev) => [newSale, ...prev]);
+    setDoc(doc(db, COLLECTIONS.SALES, newSale.id), newSale).catch(console.error);
+
     clearCart();
 
     // Trigger alerts
@@ -468,7 +647,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     return { success: true, sale: newSale };
   };
 
-  // Customer Management
+  // Customer Management + Firestore Write
   const addCustomer = ({
     name,
     phone,
@@ -493,7 +672,10 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       createdAt: new Date().toISOString(),
       notes,
     };
+
     setCustomers((prev) => [newCustomer, ...prev]);
+    setDoc(doc(db, COLLECTIONS.CUSTOMERS, newCustomer.id), newCustomer).catch(console.error);
+
     addNotification(
       '👤 Novo Cliente Cadastrado',
       `${newCustomer.name} (${newCustomer.teamOrShirt}) com limite de R$ ${newCustomer.creditLimit.toFixed(2)}.`,
@@ -506,9 +688,10 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     setCustomers((prev) =>
       prev.map((c) => (c.id === id ? { ...c, ...updates } : c))
     );
+    updateDoc(doc(db, COLLECTIONS.CUSTOMERS, id), updates).catch(console.error);
   };
 
-  // Settle Customer Debt via PIX or Dinheiro
+  // Settle Customer Debt via PIX or Dinheiro + Firestore Write
   const settleCustomerDebt = ({
     customerId,
     amount,
@@ -539,35 +722,43 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       notes,
     };
 
+    const newDebt = Math.max(0, customer.totalDebt - actualAmount);
+    const newStatus = newDebt === 0 ? 'em_dia' : customer.status;
+
     // Update customer debt
     setCustomers((prev) =>
       prev.map((c) => {
         if (c.id === customerId) {
-          const newDebt = Math.max(0, c.totalDebt - actualAmount);
           return {
             ...c,
             totalDebt: newDebt,
-            status: newDebt === 0 ? 'em_dia' : c.status,
+            status: newStatus,
           };
         }
         return c;
       })
     );
 
-    // Record payment
+    updateDoc(doc(db, COLLECTIONS.CUSTOMERS, customerId), {
+      totalDebt: newDebt,
+      status: newStatus,
+    }).catch(console.error);
+
+    // Record payment to Firestore
     setDebtPayments((prev) => [payment, ...prev]);
+    setDoc(doc(db, COLLECTIONS.DEBT_PAYMENTS, payment.id), payment).catch(console.error);
 
     // Notify
     addNotification(
       `💸 Quitação ${paymentMethod === 'pix' ? 'PIX' : 'em Dinheiro'} Recebida!`,
-      `${customer.name} quitou R$ ${actualAmount.toFixed(2)}. Restante da comanda: R$ ${(customer.totalDebt - actualAmount).toFixed(2)}.`,
+      `${customer.name} quitou R$ ${actualAmount.toFixed(2)}. Restante da comanda: R$ ${newDebt.toFixed(2)}.`,
       paymentMethod === 'pix' ? 'pix' : 'sistema'
     );
 
     return payment;
   };
 
-  // Expenses & Cash Flow
+  // Expenses & Cash Flow + Firestore Write
   const addExpense = (data: Omit<Expense, 'id' | 'timestamp'>): Expense => {
     const newExpense: Expense = {
       ...data,
@@ -575,16 +766,18 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       timestamp: new Date().toISOString(),
     };
     setExpenses((prev) => [newExpense, ...prev]);
+    setDoc(doc(db, COLLECTIONS.EXPENSES, newExpense.id), newExpense).catch(console.error);
     return newExpense;
   };
 
-  // Products & Stock
+  // Products & Stock + Firestore Write
   const addProduct = (data: Omit<Product, 'id'>): Product => {
     const newProduct: Product = {
       ...data,
       id: `prod-${Date.now()}`,
     };
     setProducts((prev) => [...prev, newProduct]);
+    setDoc(doc(db, COLLECTIONS.PRODUCTS, newProduct.id), newProduct).catch(console.error);
     return newProduct;
   };
 
@@ -592,17 +785,19 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     setProducts((prev) =>
       prev.map((p) => (p.id === id ? { ...p, ...updates } : p))
     );
+    updateDoc(doc(db, COLLECTIONS.PRODUCTS, id), updates).catch(console.error);
   };
 
   const restockProduct = (id: string, quantityToAdd: number, autoRegisterExpense: boolean = true) => {
     const prod = products.find((p) => p.id === id);
     if (!prod || quantityToAdd <= 0) return;
 
+    const newStock = prod.stockQuantity + quantityToAdd;
+
     setProducts((prev) =>
-      prev.map((p) =>
-        p.id === id ? { ...p, stockQuantity: p.stockQuantity + quantityToAdd } : p
-      )
+      prev.map((p) => (p.id === id ? { ...p, stockQuantity: newStock } : p))
     );
+    updateDoc(doc(db, COLLECTIONS.PRODUCTS, id), { stockQuantity: newStock }).catch(console.error);
 
     if (autoRegisterExpense) {
       const expenseAmount = prod.costPrice * quantityToAdd;
@@ -648,9 +843,8 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     );
   };
 
-  // Financial summary computation
+  // Cash Flow calculations
   const cashFlowSummary = useMemo(() => {
-    // Sales breakdown
     let totalRevenue = 0;
     let cashInDrawer = 0;
     let pixReceived = 0;
@@ -661,34 +855,29 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     sales.forEach((s) => {
       totalRevenue += s.totalAmount;
       totalCost += s.totalCost;
+
       if (s.paymentMethod === 'dinheiro') {
         cashInDrawer += s.totalAmount;
       } else if (s.paymentMethod === 'pix') {
         pixReceived += s.totalAmount;
       } else if (s.paymentMethod === 'cartao_debito' || s.paymentMethod === 'cartao_credito') {
         cardReceived += s.totalAmount;
+      } else if (s.paymentMethod === 'fiado') {
+        fiadoOutstanding += s.totalAmount;
       }
     });
 
-    // Add debt payments (quitação de fiado)
-    debtPayments.forEach((dp) => {
-      if (dp.paymentMethod === 'dinheiro') {
-        cashInDrawer += dp.amount;
-      } else if (dp.paymentMethod === 'pix') {
-        pixReceived += dp.amount;
+    debtPayments.forEach((p) => {
+      if (p.paymentMethod === 'dinheiro') {
+        cashInDrawer += p.amount;
+      } else if (p.paymentMethod === 'pix') {
+        pixReceived += p.amount;
       }
     });
 
-    // Current total outstanding debt across all customers
-    fiadoOutstanding = customers.reduce((acc, c) => acc + c.totalDebt, 0);
-
-    // Expenses breakdown
     const totalExpenses = expenses.reduce((acc, e) => acc + e.amount, 0);
-
     const grossProfit = totalRevenue - totalCost;
-    // Net profit = Cash + PIX + Card actually collected (or total sales) minus total expenses
-    // Cash balance in hand = (Cash in drawer + PIX in account) minus expenses paid
-    const netProfit = totalRevenue - totalExpenses;
+    const netProfit = (cashInDrawer + pixReceived + cardReceived) - totalExpenses;
     const profitMarginPercent = totalRevenue > 0 ? (netProfit / totalRevenue) * 100 : 0;
 
     return {
@@ -702,62 +891,27 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       netProfit,
       profitMarginPercent,
     };
-  }, [sales, expenses, debtPayments, customers]);
+  }, [sales, expenses, debtPayments]);
 
-  // Automated Monthly Report Builder
+  // Monthly Reports generator
   const availableReportMonths = useMemo(() => {
-    const monthsSet = new Set<string>();
-    // Add current month
-    const now = new Date();
-    const currentYearMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
-    monthsSet.add(currentYearMonth);
-
-    // Add previous month
-    const prevDate = new Date(now.getFullYear(), now.getMonth() - 1, 1);
-    const prevYearMonth = `${prevDate.getFullYear()}-${String(prevDate.getMonth() + 1).padStart(2, '0')}`;
-    monthsSet.add(prevYearMonth);
-
-    // Add months from sales and expenses
+    const months = new Set<string>();
+    months.add('2026-11');
     sales.forEach((s) => {
-      const d = new Date(s.timestamp);
-      monthsSet.add(`${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`);
+      const ym = s.timestamp.substring(0, 7);
+      months.add(ym);
     });
     expenses.forEach((e) => {
-      const d = new Date(e.timestamp);
-      monthsSet.add(`${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`);
+      const ym = e.timestamp.substring(0, 7);
+      months.add(ym);
     });
-
-    return Array.from(monthsSet).sort().reverse();
+    return Array.from(months).sort().reverse();
   }, [sales, expenses]);
 
   const getMonthlyReport = (yearMonth: string): MonthlyReportSummary => {
-    const [yearStr, monthStr] = yearMonth.split('-');
-    const year = parseInt(yearStr, 10);
-    const month = parseInt(monthStr, 10); // 1-12
-
-    const monthNames = [
-      'Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
-      'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'
-    ];
-    const monthLabel = `${monthNames[month - 1]} de ${year}`;
-
-    // Filter sales for month
-    const monthSales = sales.filter((s) => {
-      const d = new Date(s.timestamp);
-      return d.getFullYear() === year && d.getMonth() + 1 === month;
-    });
-
-    // Filter expenses for month
-    const monthExpenses = expenses.filter((e) => {
-      const d = new Date(e.timestamp);
-      return d.getFullYear() === year && d.getMonth() + 1 === month;
-    });
-
-    // Filter debt payments for month
-    const monthDebtPayments = debtPayments.filter((p) => {
-      const d = new Date(p.timestamp);
-      return d.getFullYear() === year && d.getMonth() + 1 === month;
-    });
+    const monthSales = sales.filter((s) => s.timestamp.startsWith(yearMonth));
+    const monthExpenses = expenses.filter((e) => e.timestamp.startsWith(yearMonth));
+    const monthPayments = debtPayments.filter((p) => p.timestamp.startsWith(yearMonth));
 
     let totalSales = 0;
     let cashSales = 0;
@@ -766,42 +920,47 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     let fiadoSales = 0;
     let totalCost = 0;
 
-    const productSalesMap = new Map<string, { quantity: number; revenue: number }>();
-
     monthSales.forEach((s) => {
       totalSales += s.totalAmount;
       totalCost += s.totalCost;
       if (s.paymentMethod === 'dinheiro') cashSales += s.totalAmount;
-      if (s.paymentMethod === 'pix') pixSales += s.totalAmount;
-      if (s.paymentMethod === 'cartao_debito' || s.paymentMethod === 'cartao_credito') cardSales += s.totalAmount;
-      if (s.paymentMethod === 'fiado') fiadoSales += s.totalAmount;
+      else if (s.paymentMethod === 'pix') pixSales += s.totalAmount;
+      else if (s.paymentMethod === 'cartao_debito' || s.paymentMethod === 'cartao_credito') cardSales += s.totalAmount;
+      else if (s.paymentMethod === 'fiado') fiadoSales += s.totalAmount;
+    });
 
+    const debtCollected = monthPayments.reduce((acc, p) => acc + p.amount, 0);
+    const totalExpenses = monthExpenses.reduce((acc, e) => acc + e.amount, 0);
+    const grossProfit = totalSales - totalCost;
+    const netProfit = (cashSales + pixSales + cardSales + debtCollected) - totalExpenses;
+    const profitMargin = totalSales > 0 ? (netProfit / totalSales) * 100 : 0;
+
+    const totalDelinquentDebt = customers.reduce((acc, c) => acc + c.totalDebt, 0);
+    const totalCreditedEver = totalSales + totalDelinquentDebt;
+    const delinquencyRate = totalCreditedEver > 0 ? (totalDelinquentDebt / totalCreditedEver) * 100 : 0;
+
+    // Top selling products
+    const productCountMap: Record<string, { name: string; quantity: number; revenue: number }> = {};
+    monthSales.forEach((s) => {
       s.items.forEach((item) => {
-        const cur = productSalesMap.get(item.productName) || { quantity: 0, revenue: 0 };
-        productSalesMap.set(item.productName, {
-          quantity: cur.quantity + item.quantity,
-          revenue: cur.revenue + item.subtotal,
-        });
+        if (!productCountMap[item.productId]) {
+          productCountMap[item.productId] = { name: item.productName, quantity: 0, revenue: 0 };
+        }
+        productCountMap[item.productId].quantity += item.quantity;
+        productCountMap[item.productId].revenue += item.subtotal;
       });
     });
 
-    const debtCollected = monthDebtPayments.reduce((acc, p) => acc + p.amount, 0);
-    const totalExpenses = monthExpenses.reduce((acc, e) => acc + e.amount, 0);
-    const grossProfit = totalSales - totalCost;
-    const netProfit = totalSales - totalExpenses;
-    const profitMargin = totalSales > 0 ? (netProfit / totalSales) * 100 : 0;
-
-    // Inadimplência calculation: Customers with debt in status 'inadimplente'
-    const totalDelinquentDebt = customers
-      .filter((c) => c.status === 'inadimplente' && c.totalDebt > 0)
-      .reduce((acc, c) => acc + c.totalDebt, 0);
-
-    const delinquencyRate = totalSales > 0 ? (totalDelinquentDebt / totalSales) * 100 : 0;
-
-    const topSellingProducts = Array.from(productSalesMap.entries())
-      .map(([name, data]) => ({ name, quantity: data.quantity, revenue: data.revenue }))
-      .sort((a, b) => b.revenue - a.revenue)
+    const topSellingProducts = Object.values(productCountMap)
+      .sort((a, b) => b.quantity - a.quantity)
       .slice(0, 5);
+
+    const [year, month] = yearMonth.split('-');
+    const monthNames = [
+      'Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
+      'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'
+    ];
+    const monthLabel = `${monthNames[parseInt(month, 10) - 1] || month} de ${year}`;
 
     return {
       monthKey: yearMonth,
@@ -833,10 +992,28 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     setDebtPayments([]);
     setPixConfigState(INITIAL_PIX_CONFIG);
     setNotifications(INITIAL_NOTIFICATIONS);
-    setIsAdmin(false);
+    setIsAdmin(true);
     setAdminPinState('1234');
     setCart([]);
-    addNotification('🔄 Dados Restaurados', 'Todos os dados foram resetados para a demonstração da barraca.', 'sistema');
+
+    // Seed Firestore
+    const batch = writeBatch(db);
+    INITIAL_PRODUCTS.forEach((p) => {
+      batch.set(doc(db, COLLECTIONS.PRODUCTS, p.id), p);
+    });
+    INITIAL_CUSTOMERS.forEach((c) => {
+      batch.set(doc(db, COLLECTIONS.CUSTOMERS, c.id), c);
+    });
+    INITIAL_SALES.forEach((s) => {
+      batch.set(doc(db, COLLECTIONS.SALES, s.id), s);
+    });
+    INITIAL_EXPENSES.forEach((e) => {
+      batch.set(doc(db, COLLECTIONS.EXPENSES, e.id), e);
+    });
+    batch.set(doc(db, COLLECTIONS.SETTINGS, 'pix_config'), INITIAL_PIX_CONFIG);
+    batch.commit().catch(console.error);
+
+    addNotification('🔄 Dados Restaurados', 'Todos os dados e fotos foram sincronizados no Banco de Dados da barraca.', 'sistema');
   };
 
   return (
@@ -851,6 +1028,8 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
         setAdminPin,
         theme,
         toggleTheme,
+        isFirestoreConnected,
+        firestoreSyncStatus,
         cart,
         addToCart,
         removeFromCart,

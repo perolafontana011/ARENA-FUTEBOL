@@ -1,0 +1,120 @@
+{
+  "entities": {
+    "Product": {
+      "title": "Product",
+      "description": "Item comercializado na barraca de futebol com controle de estoque e custos",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "category": { "type": "string", "enum": ["comidas", "bebidas", "bebidas_alcoolicas", "petiscos_doces"] },
+        "costPrice": { "type": "number" },
+        "salePrice": { "type": "number" },
+        "stockQuantity": { "type": "number" },
+        "minStockThreshold": { "type": "number" },
+        "unit": { "type": "string" },
+        "imageUrl": { "type": "string" },
+        "description": { "type": "string" }
+      },
+      "required": ["id", "name", "category", "costPrice", "salePrice", "stockQuantity", "minStockThreshold", "unit"]
+    },
+    "Customer": {
+      "title": "Customer",
+      "description": "Cliente cadastrado para controle de fiado e cobranças",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "phone": { "type": "string" },
+        "team": { "type": "string" },
+        "totalDebt": { "type": "number" },
+        "status": { "type": "string", "enum": ["em_dia", "atencao", "inadimplente"] },
+        "createdAt": { "type": "string" },
+        "lastPurchaseDate": { "type": "string" }
+      },
+      "required": ["id", "name", "phone", "totalDebt", "status"]
+    },
+    "Sale": {
+      "title": "Sale",
+      "description": "Registro de venda no balcão da barraca",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "timestamp": { "type": "string" },
+        "totalAmount": { "type": "number" },
+        "paymentMethod": { "type": "string", "enum": ["dinheiro", "pix", "debito", "credito", "fiado"] },
+        "customerId": { "type": "string" },
+        "customerName": { "type": "string" }
+      },
+      "required": ["id", "timestamp", "totalAmount", "paymentMethod"]
+    },
+    "Expense": {
+      "title": "Expense",
+      "description": "Despesa operacional do campeonato (gelo, carvão, taxa, reposição)",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "timestamp": { "type": "string" },
+        "description": { "type": "string" },
+        "category": { "type": "string" },
+        "amount": { "type": "number" },
+        "paymentMethod": { "type": "string" },
+        "notes": { "type": "string" }
+      },
+      "required": ["id", "timestamp", "description", "category", "amount", "paymentMethod"]
+    },
+    "DebtPayment": {
+      "title": "DebtPayment",
+      "description": "Pagamento e quitação de dívida de cliente via PIX ou dinheiro",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "customerId": { "type": "string" },
+        "customerName": { "type": "string" },
+        "amount": { "type": "number" },
+        "timestamp": { "type": "string" },
+        "paymentMethod": { "type": "string" },
+        "notes": { "type": "string" }
+      },
+      "required": ["id", "customerId", "customerName", "amount", "timestamp", "paymentMethod"]
+    },
+    "PixConfig": {
+      "title": "PixConfig",
+      "description": "Configuração da chave PIX para geração de QR Code e Copia e Cola",
+      "type": "object",
+      "properties": {
+        "key": { "type": "string" },
+        "keyType": { "type": "string" },
+        "merchantName": { "type": "string" },
+        "merchantCity": { "type": "string" }
+      },
+      "required": ["key", "keyType", "merchantName", "merchantCity"]
+    }
+  },
+  "firestore": {
+    "/products/{productId}": {
+      "schema": { "$ref": "#/entities/Product" },
+      "description": "Estoque de produtos em tempo real da barraca"
+    },
+    "/customers/{customerId}": {
+      "schema": { "$ref": "#/entities/Customer" },
+      "description": "Clientes e controle de débito/fiado"
+    },
+    "/sales/{saleId}": {
+      "schema": { "$ref": "#/entities/Sale" },
+      "description": "Vendas registradas no PDV"
+    },
+    "/expenses/{expenseId}": {
+      "schema": { "$ref": "#/entities/Expense" },
+      "description": "Despesas operacionais e custos"
+    },
+    "/debt_payments/{paymentId}": {
+      "schema": { "$ref": "#/entities/DebtPayment" },
+      "description": "Quitações de débito"
+    },
+    "/settings/{configDoc}": {
+      "schema": { "$ref": "#/entities/PixConfig" },
+      "description": "Configurações da barraca e PIX"
+    }
+  }
+}
