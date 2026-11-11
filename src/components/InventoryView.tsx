@@ -242,13 +242,28 @@ export const InventoryView: React.FC = () => {
 
                   return (
                     <tr key={prod.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/40 transition-colors">
-                      <td className="py-3.5 px-4">
-                        <div className="font-extrabold text-slate-900 dark:text-white text-xs">{prod.name}</div>
-                        {prod.description && (
-                          <span className="text-[11px] text-slate-500 dark:text-slate-400 line-clamp-1 leading-normal">
-                            {prod.description}
-                          </span>
-                        )}
+                      <td className="py-3 px-4">
+                        <div className="flex items-center gap-3">
+                          {prod.imageUrl ? (
+                            <img
+                              src={prod.imageUrl}
+                              alt={prod.name}
+                              className="w-10 h-10 rounded-xl object-cover shrink-0 border border-slate-200 dark:border-slate-700 shadow-2xs"
+                            />
+                          ) : (
+                            <div className="w-10 h-10 rounded-xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center shrink-0 text-slate-400">
+                              <Package className="w-4 h-4" />
+                            </div>
+                          )}
+                          <div className="min-w-0">
+                            <div className="font-extrabold text-slate-900 dark:text-white text-xs truncate">{prod.name}</div>
+                            {prod.description && (
+                              <span className="text-[11px] text-slate-500 dark:text-slate-400 line-clamp-1 leading-normal">
+                                {prod.description}
+                              </span>
+                            )}
+                          </div>
+                        </div>
                       </td>
                       <td className="py-3.5 px-3 text-slate-600 dark:text-slate-400 capitalize">
                         {prod.category === 'bebidas_alcoolicas'

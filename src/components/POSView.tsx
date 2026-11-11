@@ -231,10 +231,15 @@ export const POSView: React.FC = () => {
                       <img
                         src={prod.imageUrl}
                         alt={prod.name}
+                        loading="lazy"
                         referrerPolicy="no-referrer"
                         className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-300"
+                        onError={(e) => {
+                          const target = e.currentTarget;
+                          target.style.display = 'none';
+                        }}
                       />
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-black/20" />
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-black/20 pointer-events-none" />
 
                       {/* Stock badge top-right */}
                       <div className="absolute top-2 right-2">
@@ -369,8 +374,21 @@ export const POSView: React.FC = () => {
               cart.map((item) => (
                 <div
                   key={item.product.id}
-                  className="flex items-center justify-between gap-2 p-2.5 rounded-xl bg-slate-50 dark:bg-slate-950/70 border border-slate-200/80 dark:border-slate-800/80"
+                  className="flex items-center justify-between gap-2.5 p-2.5 rounded-xl bg-slate-50 dark:bg-slate-950/70 border border-slate-200/80 dark:border-slate-800/80"
                 >
+                  {/* Item Image Thumbnail */}
+                  {item.product.imageUrl ? (
+                    <img
+                      src={item.product.imageUrl}
+                      alt={item.product.name}
+                      className="w-10 h-10 rounded-lg object-cover shrink-0 border border-slate-200 dark:border-slate-700 shadow-2xs"
+                    />
+                  ) : (
+                    <div className="w-10 h-10 rounded-lg bg-slate-200 dark:bg-slate-800 flex items-center justify-center shrink-0 text-slate-500 font-bold text-xs">
+                      🍢
+                    </div>
+                  )}
+
                   <div className="min-w-0 flex-1">
                     <h4 className="text-xs font-bold text-slate-900 dark:text-slate-100 truncate">
                       {item.product.name}

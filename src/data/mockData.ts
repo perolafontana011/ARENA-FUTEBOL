@@ -22,8 +22,8 @@ export const INITIAL_PRODUCTS: Product[] = [
     stockQuantity: 28,
     minStockThreshold: 12,
     unit: 'espeto',
-    description: 'Suculento peito de frango enrolado no bacon crocante.',
-    imageUrl: '/src/assets/images/espetinho_churrasco_grelha_1794320206346.jpg',
+    description: 'Suculento peito de frango enrolado no bacon crocante grelhado na brasa.',
+    imageUrl: '/src/assets/images/espetinho_frango_bacon_1794407522891.jpg',
   },
   {
     id: 'prod-3',
@@ -34,7 +34,7 @@ export const INITIAL_PRODUCTS: Product[] = [
     stockQuantity: 35,
     minStockThreshold: 10,
     unit: 'un',
-    description: 'Frito na hora, massa crocante e recheio bem temperado.',
+    description: 'Frito na hora, massa crocante sequinha e recheio de carne bem temperado.',
     imageUrl: '/src/assets/images/pastel_feira_crocante_1794320206386.jpg',
   },
   {
@@ -46,8 +46,8 @@ export const INITIAL_PRODUCTS: Product[] = [
     stockQuantity: 6, // Low stock trigger
     minStockThreshold: 10,
     unit: 'un',
-    description: 'Queijo mussarela derretido com legítimo catupiry.',
-    imageUrl: '/src/assets/images/pastel_feira_crocante_1794320206386.jpg',
+    description: 'Queijo mussarela derretido e puxento com legítimo catupiry cremoso.',
+    imageUrl: '/src/assets/images/pastel_queijo_1794407535674.jpg',
   },
   {
     id: 'prod-5',
@@ -58,8 +58,8 @@ export const INITIAL_PRODUCTS: Product[] = [
     stockQuantity: 22,
     minStockThreshold: 8,
     unit: 'un',
-    description: 'Duas salsichas, molho artesanal, batata palha e milho.',
-    imageUrl: '/src/assets/images/stadium_concession_hero_1794318633771.jpg',
+    description: 'Pão macio, molho de tomate caseiro, milho, ervilha e muita batata palha.',
+    imageUrl: '/src/assets/images/hot_dog_estadio_1794407428338.jpg',
   },
   {
     id: 'prod-6',
@@ -70,7 +70,7 @@ export const INITIAL_PRODUCTS: Product[] = [
     stockQuantity: 68,
     minStockThreshold: 24,
     unit: 'lata',
-    description: 'Estupidamente gelada no gelo moído.',
+    description: 'Lata trincando de gelada, retirada direto do gelo moído.',
     imageUrl: '/src/assets/images/cerveja_lata_gelada_1794320206266.jpg',
   },
   {
@@ -82,8 +82,8 @@ export const INITIAL_PRODUCTS: Product[] = [
     stockQuantity: 4, // Very low stock
     minStockThreshold: 18,
     unit: 'garrafa',
-    description: 'Cerveja premium puro malte holandesa.',
-    imageUrl: '/src/assets/images/cerveja_lata_gelada_1794320206266.jpg',
+    description: 'Cerveja premium puro malte holandesa em garrafa verde estupidamente gelada.',
+    imageUrl: '/src/assets/images/cerveja_heineken_1794407495904.jpg',
   },
   {
     id: 'prod-8',
@@ -94,8 +94,8 @@ export const INITIAL_PRODUCTS: Product[] = [
     stockQuantity: 50,
     minStockThreshold: 15,
     unit: 'lata',
-    description: 'O sabor do futebol brasileiro, gelado.',
-    imageUrl: '/src/assets/images/cerveja_lata_gelada_1794320206266.jpg',
+    description: 'O sabor autêntico do futebol brasileiro, lata trincando de gelada.',
+    imageUrl: '/src/assets/images/refrigerante_guarana_1794407441803.jpg',
   },
   {
     id: 'prod-9',
@@ -106,8 +106,8 @@ export const INITIAL_PRODUCTS: Product[] = [
     stockQuantity: 44,
     minStockThreshold: 15,
     unit: 'lata',
-    description: 'Lata original bem gelada.',
-    imageUrl: '/src/assets/images/cerveja_lata_gelada_1794320206266.jpg',
+    description: 'Coca-Cola original em lata bem gelada com gotas de condensação.',
+    imageUrl: '/src/assets/images/coca_cola_lata_1794407454272.jpg',
   },
   {
     id: 'prod-10',
@@ -118,8 +118,8 @@ export const INITIAL_PRODUCTS: Product[] = [
     stockQuantity: 60,
     minStockThreshold: 20,
     unit: 'garrafa',
-    description: 'Hidratação indispensável para atletas e torcedores.',
-    imageUrl: '/src/assets/images/cerveja_lata_gelada_1794320206266.jpg',
+    description: 'Garrafa 500ml geladinha para hidratação de atletas e torcedores.',
+    imageUrl: '/src/assets/images/agua_mineral_1794407468565.jpg',
   },
   {
     id: 'prod-11',
@@ -130,8 +130,8 @@ export const INITIAL_PRODUCTS: Product[] = [
     stockQuantity: 18,
     minStockThreshold: 10,
     unit: 'lata',
-    description: 'Dá asas para o segundo tempo.',
-    imageUrl: '/src/assets/images/cerveja_lata_gelada_1794320206266.jpg',
+    description: 'Energia máxima para o segundo tempo da partida.',
+    imageUrl: '/src/assets/images/energetico_lata_1794407508833.jpg',
   },
   {
     id: 'prod-12',
@@ -142,8 +142,8 @@ export const INITIAL_PRODUCTS: Product[] = [
     stockQuantity: 25,
     minStockThreshold: 10,
     unit: 'porção',
-    description: 'Crocante, sequinha e polvilhada com sal e orégano.',
-    imageUrl: '/src/assets/images/pastel_feira_crocante_1794320206386.jpg',
+    description: 'Batata frita dourada e sequinha no cone de papel com sal e orégano.',
+    imageUrl: '/src/assets/images/batata_frita_1794407481494.jpg',
   },
 ];
 

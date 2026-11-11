@@ -162,7 +162,8 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
         const initial = INITIAL_PRODUCTS.find((ip) => ip.id === p.id);
         return {
           ...p,
-          imageUrl: p.imageUrl || initial?.imageUrl,
+          // Always ensure default catalog products use the official high-res generated asset
+          imageUrl: initial ? initial.imageUrl : (p.imageUrl || ''),
         };
       });
     } catch {
