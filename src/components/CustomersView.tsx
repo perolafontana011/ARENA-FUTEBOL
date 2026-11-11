@@ -170,12 +170,16 @@ export const CustomersView: React.FC = () => {
 
   return (
     <div className="space-y-6">
-      {/* Top Section Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      {/* Header Card */}
+      <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-5 sm:p-6 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <span className="text-xs font-bold text-emerald-700 dark:text-emerald-400 uppercase tracking-wider font-mono">
-            Gestão de Caderneta &amp; Cobrança
-          </span>
+          <div className="flex items-center gap-2 mb-1">
+            <span className="text-[11px] font-extrabold text-emerald-700 dark:text-emerald-400 uppercase tracking-wider font-mono">
+              Gestão de Caderneta &amp; Cobrança
+            </span>
+            <span className="text-slate-300 dark:text-slate-700" aria-hidden="true">·</span>
+            <span className="text-xs text-slate-500 dark:text-slate-400">WhatsApp &amp; PIX</span>
+          </div>
           <h1 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white tracking-tight">
             Clientes do Campeonato &amp; Fiado
           </h1>
@@ -189,7 +193,7 @@ export const CustomersView: React.FC = () => {
             type="button"
             onClick={handleBulkDebtDispatch}
             disabled={delinquentCustomers.length === 0}
-            className="px-3.5 py-2.5 rounded-xl border border-amber-300 dark:border-amber-500/40 bg-amber-50 dark:bg-amber-500/10 hover:bg-amber-100 dark:hover:bg-amber-500/20 disabled:opacity-40 text-amber-900 dark:text-amber-300 text-xs font-bold flex items-center gap-2 transition-colors whitespace-nowrap"
+            className="px-3.5 py-2.5 rounded-2xl border border-amber-300 dark:border-amber-500/40 bg-amber-50 dark:bg-amber-500/10 hover:bg-amber-100 dark:hover:bg-amber-500/20 disabled:opacity-40 text-amber-900 dark:text-amber-300 text-xs font-bold flex items-center gap-2 transition-colors whitespace-nowrap cursor-pointer"
             title="Disparar aviso para todos com débito vencido"
           >
             <Send className="w-3.5 h-3.5" />
@@ -199,7 +203,7 @@ export const CustomersView: React.FC = () => {
           <button
             type="button"
             onClick={() => setIsAddCustomerOpen(true)}
-            className="px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-extrabold flex items-center gap-2 transition-all shadow-sm whitespace-nowrap active:scale-95"
+            className="px-4 py-2.5 rounded-2xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-black flex items-center gap-2 transition-all shadow-sm whitespace-nowrap active:scale-95 cursor-pointer"
           >
             <UserPlus className="w-4 h-4" />
             <span>Cadastrar Cliente</span>
@@ -415,7 +419,7 @@ export const CustomersView: React.FC = () => {
                       <button
                         type="button"
                         onClick={() => setSelectedCustomerForNotice(cust)}
-                        className="py-2.5 px-3 rounded-xl bg-teal-600 hover:bg-teal-500 text-white text-xs font-bold flex items-center justify-center gap-1.5 transition-colors shadow-xs active:scale-95"
+                        className="py-2.5 px-3 rounded-xl bg-[#25D366] hover:bg-[#20bd5a] text-white text-xs font-bold flex items-center justify-center gap-1.5 transition-all shadow-xs active:scale-95 cursor-pointer"
                         title="Enviar mensagem amigável de cobrança via WhatsApp"
                       >
                         <MessageCircle className="w-3.5 h-3.5" />
@@ -425,7 +429,7 @@ export const CustomersView: React.FC = () => {
                       <button
                         type="button"
                         onClick={() => setSelectedCustomerForPix(cust)}
-                        className="py-2.5 px-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-extrabold flex items-center justify-center gap-1.5 transition-colors shadow-xs active:scale-95"
+                        className="py-2.5 px-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-extrabold flex items-center justify-center gap-1.5 transition-all shadow-xs active:scale-95 cursor-pointer"
                         title="Gerar QR Code PIX para quitação"
                       >
                         <QrCode className="w-3.5 h-3.5" />

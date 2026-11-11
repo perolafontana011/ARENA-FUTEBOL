@@ -101,12 +101,16 @@ export const InventoryView: React.FC = () => {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      {/* Header Card */}
+      <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-5 sm:p-6 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <span className="text-xs font-bold text-emerald-700 dark:text-emerald-400 uppercase tracking-wider font-mono">
-            Controle de Estoque &amp; Insumos
-          </span>
+          <div className="flex items-center gap-2 mb-1">
+            <span className="text-[11px] font-extrabold text-emerald-700 dark:text-emerald-400 uppercase tracking-wider font-mono">
+              Controle de Estoque &amp; Insumos
+            </span>
+            <span className="text-slate-300 dark:text-slate-700" aria-hidden="true">·</span>
+            <span className="text-xs text-slate-500 dark:text-slate-400">Banco de Dados Ativo</span>
+          </div>
           <h1 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white tracking-tight">
             Banco de Dados do Estoque em Tempo Real
           </h1>
@@ -118,7 +122,7 @@ export const InventoryView: React.FC = () => {
         <button
           type="button"
           onClick={() => setIsAddModalOpen(true)}
-          className="px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-extrabold flex items-center gap-2 transition-all shadow-xs whitespace-nowrap self-start sm:self-auto active:scale-95"
+          className="px-4 py-2.5 rounded-2xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-black flex items-center gap-2 transition-all shadow-sm whitespace-nowrap self-start sm:self-auto active:scale-95 cursor-pointer"
         >
           <Plus className="w-4 h-4" />
           <span>Cadastrar Produto</span>

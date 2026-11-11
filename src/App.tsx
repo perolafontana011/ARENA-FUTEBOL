@@ -14,23 +14,22 @@ const AppContent: React.FC = () => {
   return (
     <div className="min-h-screen bg-slate-100/70 dark:bg-slate-950 text-slate-900 dark:text-slate-100 flex flex-col selection:bg-emerald-500/20 selection:text-emerald-900 dark:selection:text-emerald-200 font-sans transition-colors duration-200">
       {/* Top Matchday Operational Strip */}
-      <div className="bg-white/90 dark:bg-slate-900/90 border-b border-slate-200 dark:border-slate-800 py-1.5 px-4 text-[11px] text-slate-600 dark:text-slate-400 font-medium">
-        <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-1.5">
+      <div className="bg-white/95 dark:bg-slate-900/95 border-b border-slate-200/80 dark:border-slate-800 py-2 px-4 text-xs text-slate-600 dark:text-slate-400 font-medium">
+        <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-2">
           <div className="flex items-center gap-2">
-            <span className="flex items-center gap-1.5 text-emerald-600 dark:text-emerald-400 font-extrabold font-mono text-[10px] uppercase tracking-wider bg-emerald-50 dark:bg-emerald-950/60 px-2 py-0.5 rounded-full border border-emerald-200 dark:border-emerald-800">
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-              SISTEMA DA BARRACA
+            <span className="text-emerald-700 dark:text-emerald-400 font-extrabold text-[11px] uppercase tracking-wider font-mono">
+              BARRACA OFICIAL
             </span>
-            <span className="text-slate-300 dark:text-slate-700">·</span>
-            <span className="text-slate-800 dark:text-slate-200 font-bold">Copa dos Campeões 2026</span>
-            <span className="hidden md:inline text-slate-300 dark:text-slate-700">·</span>
-            <span className="hidden md:inline text-slate-500 dark:text-slate-400">Final da Rodada no Estádio Municipal</span>
+            <span className="text-slate-300 dark:text-slate-700" aria-hidden="true">·</span>
+            <span className="text-slate-800 dark:text-slate-200 font-bold">Copa dos Campeões Varzeana 2026</span>
+            <span className="hidden md:inline text-slate-300 dark:text-slate-700" aria-hidden="true">·</span>
+            <span className="hidden md:inline text-slate-500 dark:text-slate-400">Estádio Municipal · Portão Principal</span>
           </div>
 
-          <div className="flex items-center gap-3 text-[11px]">
-            <span className={`flex items-center gap-1.5 font-bold ${isAdmin ? 'text-emerald-700 dark:text-emerald-400' : 'text-slate-500 dark:text-slate-400'}`}>
+          <div className="flex items-center gap-3 text-xs">
+            <span className={`flex items-center gap-1.5 font-bold ${isAdmin ? 'text-emerald-700 dark:text-emerald-400' : 'text-slate-600 dark:text-slate-400'}`}>
               <ShieldCheck className="w-3.5 h-3.5" />
-              {isAdmin ? 'Modo Administrador (Acesso Total Liberado)' : 'Modo Operador de Balcão (Apenas Vendas)'}
+              {isAdmin ? 'Modo Administrador (Acesso Liberado)' : 'Modo Balcão (Operador de Caixa)'}
             </span>
           </div>
         </div>

@@ -129,33 +129,50 @@ export const POSView: React.FC = () => {
   };
 
   return (
-    <div className="space-y-5">
-      {/* Sleek, Modern Matchday Banner Header */}
-      <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 sm:p-5 shadow-sm flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-        <div>
-          <div className="flex items-center gap-2 mb-1">
-            <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse" />
-            <span className="text-xs font-bold text-emerald-700 dark:text-emerald-400 uppercase tracking-wider font-mono">
-              ⚽ Campeonato Varzeano 2026 · Rodada em Andamento
-            </span>
+    <div className="space-y-6">
+      {/* Charming, Inviting Matchday Concession Header */}
+      <div className="relative overflow-hidden bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-5 sm:p-6 shadow-xs">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div className="space-y-1">
+            <div className="flex items-center gap-2">
+              <span className="text-[11px] font-extrabold uppercase tracking-wider text-emerald-700 dark:text-emerald-400 font-mono">
+                ⚽ Balcão Oficial · Rodada do Campeonato
+              </span>
+              <span className="text-slate-300 dark:text-slate-700" aria-hidden="true">·</span>
+              <span className="text-xs text-slate-500 dark:text-slate-400">Atendimento Rápido</span>
+            </div>
+            <h1 className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white tracking-tight">
+              Cardápio da Barraca
+            </h1>
+            <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400 max-w-xl">
+              Toque nos espetinhos, pastéis crocantes ou bebidas geladas para lançar na comanda. Baixa imediata no estoque.
+            </p>
           </div>
-          <h1 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white tracking-tight">
-            Balcão de Vendas &amp; Atendimento Rápido
-          </h1>
-          <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-0.5">
-            Toque nos espetinhos, pastéis ou bebidas para lançar o pedido. Baixa imediata de estoque.
-          </p>
-        </div>
 
-        <div className="flex items-center gap-2.5 bg-slate-50 dark:bg-slate-800/60 p-2.5 rounded-xl border border-slate-200/80 dark:border-slate-700/60 text-xs self-stretch sm:self-auto justify-between sm:justify-start">
-          <div className="text-left">
-            <span className="text-[10px] text-slate-400 uppercase font-bold block">Status da Barraca</span>
-            <span className="font-extrabold text-emerald-700 dark:text-emerald-400">🔥 Churrasqueira a toda</span>
-          </div>
-          <div className="h-6 w-px bg-slate-200 dark:bg-slate-700 mx-1" />
-          <div className="text-left">
-            <span className="text-[10px] text-slate-400 uppercase font-bold block">Bebidas</span>
-            <span className="font-extrabold text-teal-700 dark:text-teal-400">❄️ No gelo moído</span>
+          <div className="flex items-center gap-2 flex-wrap sm:flex-nowrap">
+            <div className="flex items-center gap-2 bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800/60 px-3.5 py-2 rounded-2xl">
+              <span className="text-base select-none">🍢</span>
+              <div>
+                <span className="text-[10px] text-emerald-800 dark:text-emerald-300 uppercase font-bold block">Grelha</span>
+                <span className="text-xs font-black text-emerald-900 dark:text-emerald-200">Na Brasa</span>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2 bg-teal-50 dark:bg-teal-950/40 border border-teal-200 dark:border-teal-800/60 px-3.5 py-2 rounded-2xl">
+              <span className="text-base select-none">❄️</span>
+              <div>
+                <span className="text-[10px] text-teal-800 dark:text-teal-300 uppercase font-bold block">Freezer</span>
+                <span className="text-xs font-black text-teal-900 dark:text-teal-200">No Gelo Moído</span>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2 bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/60 px-3.5 py-2 rounded-2xl">
+              <span className="text-base select-none">⚡</span>
+              <div>
+                <span className="text-[10px] text-slate-600 dark:text-slate-400 uppercase font-bold block">Pagamento</span>
+                <span className="text-xs font-black text-slate-900 dark:text-white">PIX no Balcão</span>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -174,12 +191,12 @@ export const POSView: React.FC = () => {
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Buscar espeto, pastel, cerveja, refrigerante..."
-                className="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl pl-10 pr-8 py-2.5 text-xs sm:text-sm text-slate-900 dark:text-slate-100 placeholder-slate-400 focus:outline-none focus:border-emerald-600 focus:ring-2 focus:ring-emerald-500/20 transition-all shadow-xs"
+                className="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl pl-10 pr-8 py-2.5 text-xs sm:text-sm text-slate-900 dark:text-slate-100 placeholder-slate-400 focus:outline-none focus:border-emerald-600 focus:ring-2 focus:ring-emerald-500/20 transition-all shadow-xs"
               />
               {searchQuery && (
                 <button
                   onClick={() => setSearchQuery('')}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-slate-400 hover:text-slate-700 dark:hover:text-white"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-slate-400 hover:text-slate-700 dark:hover:text-white cursor-pointer"
                 >
                   ✕
                 </button>
@@ -187,7 +204,7 @@ export const POSView: React.FC = () => {
             </div>
 
             {/* Category Segmented Tabs */}
-            <div className="flex items-center gap-1 p-1 bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl overflow-x-auto">
+            <div className="flex items-center gap-1 p-1 bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl overflow-x-auto">
               {categories.map((cat) => {
                 const IconComponent = cat.icon;
                 const isActive = selectedCategory === cat.id;
@@ -195,7 +212,7 @@ export const POSView: React.FC = () => {
                   <button
                     key={cat.id}
                     onClick={() => setSelectedCategory(cat.id)}
-                    className={`px-3 py-1.5 text-xs font-bold rounded-lg whitespace-nowrap transition-all flex items-center gap-1.5 ${
+                    className={`px-3 py-1.5 text-xs font-bold rounded-xl whitespace-nowrap transition-all flex items-center gap-1.5 cursor-pointer ${
                       isActive
                         ? 'bg-emerald-600 text-white shadow-xs'
                         : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-white/80 dark:hover:bg-slate-800'
@@ -219,8 +236,10 @@ export const POSView: React.FC = () => {
               return (
                 <div
                   key={prod.id}
-                  className={`group relative rounded-2xl border transition-all duration-150 flex flex-col justify-between overflow-hidden shadow-xs hover:shadow-md ${
-                    !inStock
+                  className={`group relative rounded-3xl border transition-all duration-200 flex flex-col justify-between overflow-hidden shadow-xs hover:shadow-md hover:-translate-y-0.5 ${
+                    cartItem
+                      ? 'bg-emerald-50/30 dark:bg-emerald-950/20 border-emerald-400 dark:border-emerald-600 ring-2 ring-emerald-500/20'
+                      : !inStock
                       ? 'bg-slate-50 dark:bg-slate-900/40 border-slate-200 dark:border-slate-800 opacity-60'
                       : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 hover:border-emerald-500 dark:hover:border-emerald-500/50'
                   }`}
