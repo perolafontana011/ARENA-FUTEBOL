@@ -9,7 +9,7 @@ import { ReportsView } from './components/ReportsView';
 import { RotateCcw, ShieldCheck, Flame, Trophy, Volume2 } from 'lucide-react';
 
 const AppContent: React.FC = () => {
-  const { activeTab, isAdmin, resetToMockData } = useApp();
+  const { activeTab, isAdmin, lockAdmin, resetToMockData } = useApp();
 
   return (
     <div className="min-h-screen bg-slate-100/70 dark:bg-slate-950 text-slate-900 dark:text-slate-100 flex flex-col selection:bg-emerald-500/20 selection:text-emerald-900 dark:selection:text-emerald-200 font-sans transition-colors duration-200">
@@ -27,10 +27,27 @@ const AppContent: React.FC = () => {
           </div>
 
           <div className="flex items-center gap-3 text-xs">
-            <span className={`flex items-center gap-1.5 font-bold ${isAdmin ? 'text-emerald-700 dark:text-emerald-400' : 'text-slate-600 dark:text-slate-400'}`}>
-              <ShieldCheck className="w-3.5 h-3.5" />
-              {isAdmin ? 'Modo Administrador (Acesso Liberado)' : 'Modo Balcão (Operador de Caixa)'}
-            </span>
+            {isAdmin ? (
+              <div className="flex items-center gap-2">
+                <span className="flex items-center gap-1.5 font-bold text-emerald-700 dark:text-emerald-400">
+                  <ShieldCheck className="w-3.5 h-3.5" />
+                  <span>Dono / Administrador</span>
+                </span>
+                <button
+                  type="button"
+                  onClick={lockAdmin}
+                  className="px-2 py-0.5 rounded-md bg-rose-50 hover:bg-rose-100 dark:bg-rose-950/40 text-rose-700 dark:text-rose-400 text-[11px] font-bold border border-rose-200 dark:border-rose-800 transition-colors cursor-pointer"
+                  title="Bloquear controle de caixa imediatamente"
+                >
+                  Bloquear Caixa
+                </button>
+              </div>
+            ) : (
+              <span className="flex items-center gap-1.5 font-semibold text-slate-500 dark:text-slate-400">
+                <ShieldCheck className="w-3.5 h-3.5 text-slate-400" />
+                <span>Modo Balcão · Operador (Caixa &amp; Lucros Protegidos)</span>
+              </span>
+            )}
           </div>
         </div>
       </div>

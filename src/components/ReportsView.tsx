@@ -25,6 +25,7 @@ import { AdminPinModal } from './AdminPinModal';
 export const ReportsView: React.FC = () => {
   const { 
     isAdmin, 
+    lockAdmin,
     availableReportMonths, 
     getMonthlyReport, 
     customers, 
@@ -192,6 +193,16 @@ export const ReportsView: React.FC = () => {
           >
             <Download className="w-3.5 h-3.5" />
             <span>Exportar JSON</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={lockAdmin}
+            className="px-3 py-2 rounded-xl border border-amber-300 dark:border-amber-700/60 bg-amber-50 hover:bg-amber-100 dark:bg-amber-950/40 dark:hover:bg-amber-900/40 text-amber-900 dark:text-amber-200 text-xs font-bold flex items-center gap-1.5 transition-colors shadow-xs cursor-pointer"
+            title="Bloquear relatórios e retornar ao balcão"
+          >
+            <Lock className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400" />
+            <span>Bloquear Relatórios</span>
           </button>
         </div>
       </div>

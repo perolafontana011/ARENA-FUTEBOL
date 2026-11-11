@@ -129,7 +129,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   // Navigation & Role
   const [activeTab, setActiveTab] = useState<'pos' | 'customers' | 'cashflow' | 'inventory' | 'reports'>('pos');
   const [isAdmin, setIsAdmin] = useState<boolean>(() => {
-    return localStorage.getItem(STORAGE_KEYS.IS_ADMIN) === 'true';
+    return sessionStorage.getItem('arena_gol_admin_session') === 'active';
   });
   const [adminPin, setAdminPinState] = useState<string>(() => {
     return localStorage.getItem(STORAGE_KEYS.ADMIN_PIN) || '1234';
@@ -245,6 +245,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   const unlockAdmin = (pin: string): boolean => {
     if (pin.trim() === adminPin.trim()) {
       setIsAdmin(true);
+      sessionStorage.setItem('arena_gol_admin_session', 'active');
       playNotificationSound('success');
       return true;
     }
@@ -254,7 +255,9 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
 
   const lockAdmin = () => {
     setIsAdmin(false);
-    // If on a restricted tab, go back to POS
+    sessionStorage.removeItem('arena_gol_admin_session');
+    localStorage.removeItem(STORAGE_KEYS.IS_ADMIN);
+    // If on a restricted tab, go back to POS immediately
     if (['cashflow', 'reports'].includes(activeTab)) {
       setActiveTab('pos');
     }
