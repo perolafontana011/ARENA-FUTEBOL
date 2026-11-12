@@ -1,0 +1,935 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Vendas de Domingo - Caixa, Gastos & Lucro</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <!-- Supabase JS Client -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    body { font-family: system-ui, -apple-system, sans-serif; touch-action: manipulation; }
+    .no-select { -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; }
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: #f1f5f9; border-radius: 4px; }
+    ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+  </style>
+</head>
+<body class="bg-slate-100 text-slate-800 h-screen flex flex-col no-select">
+
+  <!-- BARRA DE NAVEGAÇÃO -->
+  <header class="bg-slate-900 text-white p-2.5 md:p-3 shadow-md flex justify-between items-center flex-wrap gap-2">
+    <div class="flex items-center gap-2">
+      <i data-lucide="store" class="text-amber-400 w-5 h-5"></i>
+      <h1 class="font-bold text-base md:text-lg">Vendas de Domingo</h1>
+    </div>
+    <nav class="flex gap-1 md:gap-2 overflow-x-auto">
+      <button onclick="mudarAba('comandas')" id="btn-comandas" class="px-2.5 py-1.5 rounded-lg font-medium text-xs md:text-sm flex items-center gap-1 bg-amber-500 text-slate-900">
+        <i data-lucide="shopping-bag" class="w-4 h-4"></i> Comandas
+      </button>
+      <button onclick="mudarAba('lucro')" id="btn-lucro" class="px-2.5 py-1.5 rounded-lg font-medium text-xs md:text-sm flex items-center gap-1 bg-slate-800 text-slate-300">
+        <i data-lucide="trending-up" class="w-4 h-4"></i> Lucro & Financeiro
+      </button>
+      <button onclick="mudarAba('compras')" id="btn-compras" class="px-2.5 py-1.5 rounded-lg font-medium text-xs md:text-sm flex items-center gap-1 bg-slate-800 text-slate-300">
+        <i data-lucide="shopping-cart" class="w-4 h-4"></i> Compras / Gastos
+      </button>
+      <button onclick="mudarAba('devedores')" id="btn-devedores" class="px-2.5 py-1.5 rounded-lg font-medium text-xs md:text-sm flex items-center gap-1 bg-slate-800 text-slate-300">
+        <i data-lucide="wallet" class="w-4 h-4"></i> Fiados por Data
+      </button>
+      <button onclick="mudarAba('historico')" id="btn-historico" class="px-2.5 py-1.5 rounded-lg font-medium text-xs md:text-sm flex items-center gap-1 bg-slate-800 text-slate-300">
+        <i data-lucide="history" class="w-4 h-4"></i> Pagamentos
+      </button>
+      <button onclick="mudarAba('clientes')" id="btn-clientes" class="px-2.5 py-1.5 rounded-lg font-medium text-xs md:text-sm flex items-center gap-1 bg-slate-800 text-slate-300">
+        <i data-lucide="users" class="w-4 h-4"></i> Clientes
+      </button>
+      <button onclick="mudarAba('produtos')" id="btn-produtos" class="px-2.5 py-1.5 rounded-lg font-medium text-xs md:text-sm flex items-center gap-1 bg-slate-800 text-slate-300">
+        <i data-lucide="package" class="w-4 h-4"></i> Produtos
+      </button>
+    </nav>
+  </header>
+
+  <!-- CONTEÚDO PRINCIPAL -->
+  <main class="flex-1 p-2 md:p-3 overflow-hidden relative">
+
+    <!-- ABA 1: COMANDAS -->
+    <div id="aba-comandas" class="h-full grid grid-cols-1 md:grid-cols-12 gap-3 overflow-y-auto md:overflow-hidden">
+      
+      <!-- PAINEL ESQUERDO -->
+      <div class="md:col-span-7 bg-white rounded-xl shadow-sm border border-slate-200 flex flex-col min-h-[350px] md:h-full overflow-hidden">
+        <div class="p-3 border-b border-slate-200 bg-slate-50 space-y-2">
+          <div class="flex justify-between items-center">
+            <label class="block text-xs font-bold text-slate-600 uppercase tracking-wider">1. Data do Evento</label>
+            <input type="date" id="input-data-evento" onchange="renderizarTudo()" class="p-1.5 border rounded-lg text-xs font-bold bg-white text-slate-800 border-slate-300 outline-none focus:ring-2 focus:ring-amber-500">
+          </div>
+          
+          <div class="flex justify-between items-center pt-1">
+            <span class="text-xs font-bold text-slate-500 uppercase">2. Selecione o Amigo</span>
+            <span class="text-[11px] text-slate-400 font-medium">Toque para abrir a conta</span>
+          </div>
+          <div id="grid-clientes-emojis" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-2 max-h-[220px] md:max-h-[250px] overflow-y-auto pr-1"></div>
+        </div>
+
+        <div class="p-3 flex-1 overflow-y-auto bg-slate-50/50">
+          <label class="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-2">3. Marcar Consumo</label>
+          <div id="lista-produtos-cards" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2"></div>
+        </div>
+      </div>
+
+      <!-- PAINEL DIREITO -->
+      <div class="md:col-span-5 bg-white rounded-xl shadow-sm border border-slate-200 flex flex-col min-h-[350px] md:h-full overflow-hidden">
+        <div class="p-3 border-b border-slate-100 bg-slate-50 flex justify-between items-center">
+          <div>
+            <p id="nome-cliente-comanda" class="text-sm text-slate-800 font-bold flex items-center gap-1">
+              <span>👤</span> <span>Selecione um amigo</span>
+            </p>
+            <p id="saldo-devedor-cliente" class="text-xs font-bold text-red-600 mt-0.5">Saldo Acumulado: R$ 0,00</p>
+          </div>
+          <div class="flex gap-1">
+            <button onclick="copiarExtratoWhatsApp()" class="text-[11px] text-emerald-700 font-bold px-2 py-1 rounded bg-emerald-50 hover:bg-emerald-100 border border-emerald-200">📋 Zap</button>
+            <button onclick="limparConsumoHoje()" class="text-[11px] text-slate-500 font-bold px-2 py-1 rounded bg-slate-100 hover:bg-slate-200">Limpar</button>
+          </div>
+        </div>
+
+        <div class="flex-1 overflow-y-auto p-3 space-y-3">
+          <div>
+            <span id="label-consumo-evento" class="text-[11px] font-bold text-amber-800 uppercase tracking-wider block mb-1">Marcando no Evento:</span>
+            <div id="itens-comanda-hoje" class="space-y-1.5">
+              <p class="text-slate-400 text-xs italic">Nenhum item selecionado nesta data.</p>
+            </div>
+          </div>
+          <hr class="border-slate-200">
+          <div>
+            <span class="text-[11px] font-bold text-slate-500 uppercase tracking-wider block mb-1">Extrato por Datas Pendentes:</span>
+            <div id="historico-debitos-cliente" class="space-y-1.5 max-h-40 overflow-y-auto pr-1">
+              <p class="text-slate-400 text-xs italic">Sem débitos acumulados.</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="p-3 border-t border-slate-200 bg-slate-50 space-y-2">
+          <div class="flex justify-between items-center font-bold text-slate-900 px-1">
+            <span class="text-xs text-slate-500">Valor do Evento Atual:</span>
+            <span id="total-hoje" class="text-sm text-slate-800">R$ 0,00</span>
+          </div>
+
+          <button onclick="lancarNaConta()" class="w-full py-2 bg-amber-500 hover:bg-amber-600 text-slate-900 font-bold rounded-lg shadow-sm text-xs flex items-center justify-center gap-1">
+            <i data-lucide="plus-circle" class="w-4 h-4"></i> Lançar Consumo na Data Selecionada
+          </button>
+
+          <hr class="border-slate-200 my-1">
+
+          <div class="grid grid-cols-3 gap-1.5">
+            <button onclick="receberPagamento('Pix')" class="py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-lg shadow-sm active:scale-95 text-xs">PIX</button>
+            <button onclick="receberPagamento('Dinheiro')" class="py-2 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-lg shadow-sm active:scale-95 text-xs">Dinheiro</button>
+            <button onclick="receberPagamento('Cartao')" class="py-2 bg-purple-600 hover:bg-purple-700 text-white font-bold rounded-lg shadow-sm active:scale-95 text-xs">Cartão</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ABA 2: LUCRO REAL & DEMONSTRATIVO FINANCEIRO -->
+    <div id="aba-lucro" class="h-full hidden bg-white rounded-xl shadow-sm border border-slate-200 p-4 md:p-6 overflow-y-auto">
+      <div class="flex justify-between items-center mb-6 border-b pb-4">
+        <div>
+          <h2 class="text-xl font-bold text-slate-800">Balanço Financeiro & Lucro Real</h2>
+          <p class="text-sm text-slate-500">Saiba quanto você comprou, quanto vendeu e o seu lucro exato</p>
+        </div>
+      </div>
+
+      <!-- CARDS DE MÉTRICAS -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+        <div class="p-4 bg-blue-50 border border-blue-200 rounded-xl">
+          <p class="text-xs text-blue-600 font-bold uppercase">Total Vendido (Geral)</p>
+          <p id="stat-lucro-vendas" class="text-2xl font-bold text-blue-700">R$ 0,00</p>
+        </div>
+        <div class="p-4 bg-emerald-50 border border-emerald-200 rounded-xl">
+          <p class="text-xs text-emerald-600 font-bold uppercase">Recebido no Caixa</p>
+          <p id="stat-lucro-recebido" class="text-2xl font-bold text-emerald-700">R$ 0,00</p>
+        </div>
+        <div class="p-4 bg-amber-50 border border-amber-200 rounded-xl">
+          <p class="text-xs text-amber-600 font-bold uppercase">Fiado Pendente</p>
+          <p id="stat-lucro-fiado" class="text-2xl font-bold text-amber-700">R$ 0,00</p>
+        </div>
+        <div class="p-4 bg-red-50 border border-red-200 rounded-xl">
+          <p class="text-xs text-red-600 font-bold uppercase">Total de Gastos/Compras</p>
+          <p id="stat-lucro-gastos" class="text-2xl font-bold text-red-700">R$ 0,00</p>
+        </div>
+      </div>
+
+      <!-- CARD DE LUCRO LÍQUIDO DESTACADO -->
+      <div id="card-lucro-liquido" class="p-5 bg-emerald-50 border-2 border-emerald-300 rounded-xl mb-6 flex justify-between items-center">
+        <div>
+          <p class="text-xs font-bold uppercase text-emerald-800 tracking-wider">LUCRO LÍQUIDO REAL DA OPERAÇÃO</p>
+          <p class="text-xs text-slate-500 mt-0.5">(Total Vendido - Gastos de Compras)</p>
+        </div>
+        <p id="stat-lucro-liquido" class="text-3xl font-extrabold text-emerald-700">R$ 0,00</p>
+      </div>
+
+      <!-- MARGEM DE LUCRO POR PRODUTO -->
+      <h3 class="font-bold text-slate-700 mb-3 text-sm uppercase tracking-wider">Margem de Lucro Bruto por Item</h3>
+      <div id="tabela-margem-produtos" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3"></div>
+    </div>
+
+    <!-- ABA 3: GERENCIAR COMPRAS / GASTOS -->
+    <div id="aba-compras" class="h-full hidden bg-white rounded-xl shadow-sm border border-slate-200 p-4 md:p-6 overflow-y-auto">
+      <h2 class="text-xl font-bold mb-4">Lançar Gastos e Compras de Insumos</h2>
+      <form onsubmit="salvarCompra(event)" class="grid grid-cols-1 sm:grid-cols-4 gap-3 mb-6 max-w-2xl">
+        <input type="text" id="input-desc-compra" placeholder="Ex: Fardo Cerveja 12un / Carvão" required class="sm:col-span-2 p-3 border rounded-lg outline-none focus:ring-2 focus:ring-amber-500">
+        <input type="number" step="0.01" id="input-valor-compra" placeholder="Valor (Ex: 35.00)" required class="p-3 border rounded-lg outline-none focus:ring-2 focus:ring-amber-500">
+        <button type="submit" class="bg-amber-500 text-slate-900 font-bold px-6 py-3 rounded-lg hover:bg-amber-600">Lançar Gasto</button>
+      </form>
+      
+      <h3 class="font-bold text-slate-700 mb-2">Histórico de Compras Registradas</h3>
+      <div id="lista-compras-registradas" class="space-y-2 max-w-2xl"></div>
+    </div>
+
+    <!-- ABA 4: RELATÓRIO PENDENTES POR EVENTO -->
+    <div id="aba-devedores" class="h-full hidden bg-white rounded-xl shadow-sm border border-slate-200 p-4 md:p-6 overflow-y-auto">
+      <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6 border-b pb-4">
+        <div>
+          <h2 class="text-xl font-bold text-slate-800">Relatório de Pendências por Evento</h2>
+          <p class="text-sm text-slate-500">Filtre por data para ver quem ficou devendo em um domingo específico</p>
+        </div>
+        <div class="flex flex-col sm:flex-row gap-3 w-full md:w-auto items-end">
+          <div>
+            <label class="block text-xs font-bold text-slate-500 mb-1">Filtrar por Evento:</label>
+            <select id="filtro-data-evento" onchange="renderizarDevedores()" class="p-2 border rounded-lg text-sm bg-white font-medium w-full">
+              <option value="">Todas as Datas (Acumulado)</option>
+            </select>
+          </div>
+          <div class="p-3 bg-red-50 border border-red-200 rounded-xl w-full sm:w-auto">
+            <p class="text-xs text-red-600 font-bold uppercase">Total a Receber</p>
+            <p id="stat-total-a-receber" class="text-xl font-bold text-red-700">R$ 0,00</p>
+          </div>
+        </div>
+      </div>
+
+      <div id="lista-saldos-devedores" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4"></div>
+    </div>
+
+    <!-- ABA 5: HISTÓRICO DE PAGAMENTOS COM OPÇÃO DE ESTORNO -->
+    <div id="aba-historico" class="h-full hidden bg-white rounded-xl shadow-sm border border-slate-200 p-4 md:p-6 overflow-y-auto">
+      <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
+        <div>
+          <h2 class="text-xl font-bold text-slate-800">Histórico de Pagamentos Recebidos</h2>
+          <p class="text-sm text-slate-500">Registro de acertos efetuados (com opção de cancelamento/estorno)</p>
+        </div>
+        <select id="filtro-cliente-historico" onchange="renderizarHistorico()" class="p-2 border rounded-lg text-sm bg-white font-medium">
+          <option value="">Todos os clientes</option>
+        </select>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+        <div class="p-4 bg-emerald-50 border border-emerald-200 rounded-xl">
+          <p class="text-xs text-emerald-600 font-semibold uppercase">Total Já Arrecadado</p>
+          <p id="stat-total-arrecadado" class="text-2xl font-bold text-emerald-700">R$ 0,00</p>
+        </div>
+      </div>
+
+      <div id="lista-historico-pagamentos" class="space-y-3"></div>
+    </div>
+
+    <!-- ABA 6: CLIENTES -->
+    <div id="aba-clientes" class="h-full hidden bg-white rounded-xl shadow-sm border border-slate-200 p-4 md:p-6 overflow-y-auto">
+      <h2 class="text-xl font-bold mb-4">Gerenciar Amigos / Clientes</h2>
+      <form onsubmit="salvarCliente(event)" class="flex flex-col sm:flex-row gap-3 mb-6 max-w-xl">
+        <input type="text" id="input-nome-cliente" placeholder="Nome do amigo (ex: Bruno Silva)" required class="flex-1 p-3 border rounded-lg outline-none focus:ring-2 focus:ring-amber-500">
+        <select id="select-emoji-cliente" class="p-3 border rounded-lg bg-white text-xl outline-none focus:ring-2 focus:ring-amber-500"></select>
+        <button type="submit" class="bg-amber-500 text-slate-900 font-bold px-6 py-3 rounded-lg hover:bg-amber-600">Adicionar</button>
+      </form>
+      <h3 class="font-bold text-slate-700 mb-2">Clientes Cadastrados</h3>
+      <ul id="lista-clientes-cadastrados" class="divide-y divide-slate-200 max-w-xl border rounded-lg bg-white"></ul>
+    </div>
+
+    <!-- ABA 7: PRODUTOS -->
+    <div id="aba-produtos" class="h-full hidden bg-white rounded-xl shadow-sm border border-slate-200 p-4 md:p-6 overflow-y-auto">
+      <h2 class="text-xl font-bold mb-4">Gerenciar Produtos & Custo Unitário</h2>
+      <form onsubmit="salvarProduto(event)" class="grid grid-cols-1 sm:grid-cols-4 gap-3 mb-6 max-w-xl">
+        <input type="text" id="input-nome-prod" placeholder="Nome (Ex: Cerveja)" required class="p-3 border rounded-lg outline-none focus:ring-2 focus:ring-amber-500">
+        <input type="number" step="0.01" id="input-custo-prod" placeholder="Custo (Ex: 2.50)" required class="p-3 border rounded-lg outline-none focus:ring-2 focus:ring-amber-500">
+        <input type="number" step="0.01" id="input-preco-prod" placeholder="Venda (Ex: 6.00)" required class="p-3 border rounded-lg outline-none focus:ring-2 focus:ring-amber-500">
+        <button type="submit" class="bg-amber-500 text-slate-900 font-bold px-4 py-3 rounded-lg hover:bg-amber-600">Adicionar</button>
+      </form>
+      <h3 class="font-bold text-slate-700 mb-2">Produtos Cadastrados</h3>
+      <div id="lista-produtos-cadastrados" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3"></div>
+    </div>
+
+  </main>
+
+  <script>
+    const EMOJIS = [
+      '😎', '🤠', '🥳', '😀', '😃', '😄', '😁', '😆', '😅', '🤣', '😂', '🙂', 
+      '🙃', '😉', '😇', '😍', '🤩', '😘', '😋', '😜', '🤪', '🤖', '👻', '👽', 
+      '🍻', '🍺', '🍷', '🥂', '🍹', '🍔', '🍕', '🌭', '🍟', '🥩', '🍖', '🌮', 
+      '🍿', '🍓', '🍉', '🍍', '🍦', '🍩', '☕', '⚽', '🏀', '🏈', '⚾', '🎾', 
+      '🎱', '🥊', '🎯', '🎮', '🎲', '🎳', '🎸', '🎤', '🎧', '🥁', '👑', '🕶️', 
+      '🎩', '🚀', '🔥', '🦁', '🪙', '💎', '⭐', '⚡', '💣', '🏆', '⚓', '🚗'
+    ];
+
+    const SUPABASE_URL = 'SUA_URL_SUPABASE';
+    const SUPABASE_KEY = 'SUA_KEY_SUPABASE';
+    let supabaseClient = null;
+
+    if (SUPABASE_URL !== 'SUA_URL_SUPABASE') {
+      supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+    }
+
+    let db = {
+      clientes: JSON.parse(localStorage.getItem('db_clientes')) || [
+        { id: '1', nome: 'João', emoji: '😎' },
+        { id: '2', nome: 'Maria', emoji: '🤠' },
+        { id: '3', nome: 'Lucas', emoji: '🍻' }
+      ],
+      produtos: JSON.parse(localStorage.getItem('db_produtos')) || [
+        { id: 1, nome: 'Cerveja Lata', custo: 2.50, preco: 6.00 },
+        { id: 2, nome: 'Espetinho', custo: 4.00, preco: 10.00 },
+        { id: 3, nome: 'Refrigerante', custo: 2.00, preco: 5.00 }
+      ],
+      compras: JSON.parse(localStorage.getItem('db_compras')) || [],
+      consumoHoje: JSON.parse(localStorage.getItem('db_consumo_hoje')) || {},
+      saldos: JSON.parse(localStorage.getItem('db_saldos')) || {},
+      pagamentos: JSON.parse(localStorage.getItem('db_pagamentos')) || []
+    };
+
+    let clienteAtual = null;
+
+    document.getElementById('input-data-evento').value = new Date().toISOString().split('T')[0];
+
+    function salvarLocal() {
+      localStorage.setItem('db_clientes', JSON.stringify(db.clientes));
+      localStorage.setItem('db_produtos', JSON.stringify(db.produtos));
+      localStorage.setItem('db_compras', JSON.stringify(db.compras));
+      localStorage.setItem('db_consumo_hoje', JSON.stringify(db.consumoHoje));
+      localStorage.setItem('db_saldos', JSON.stringify(db.saldos));
+      localStorage.setItem('db_pagamentos', JSON.stringify(db.pagamentos));
+    }
+
+    function preencherSelectEmojis() {
+      const select = document.getElementById('select-emoji-cliente');
+      if (select) {
+        select.innerHTML = EMOJIS.map(e => `<option value="${e}">${e}</option>`).join('');
+      }
+    }
+
+    function formatarDataBR(dataIso) {
+      if (!dataIso) return '';
+      const partes = dataIso.split('-');
+      return `${partes[2]}/${partes[1]}/${partes[0]}`;
+    }
+
+    function mudarAba(aba) {
+      ['comandas', 'lucro', 'compras', 'devedores', 'historico', 'clientes', 'produtos'].forEach(a => {
+        document.getElementById(`aba-${a}`).classList.add('hidden');
+        document.getElementById(`btn-${a}`).className = 'px-2.5 py-1.5 rounded-lg font-medium text-xs md:text-sm flex items-center gap-1 bg-slate-800 text-slate-300';
+      });
+      document.getElementById(`aba-${aba}`).classList.remove('hidden');
+      document.getElementById(`btn-${aba}`).className = 'px-2.5 py-1.5 rounded-lg font-medium text-xs md:text-sm flex items-center gap-1 bg-amber-500 text-slate-900';
+      renderizarTudo();
+    }
+
+    function renderizarTudo() {
+      // 1. GRID DE CLIENTES
+      const gridClientes = document.getElementById('grid-clientes-emojis');
+      gridClientes.innerHTML = db.clientes.map(c => {
+        const isSelected = c.nome === clienteAtual;
+        const saldoDevTotal = (db.saldos[c.nome] && db.saldos[c.nome].total) || 0;
+        
+        return `
+          <button onclick="selecionarCliente('${c.nome}')" class="p-2 rounded-lg border-2 flex items-center gap-2 transition-all h-[62px] ${
+            isSelected 
+              ? 'bg-amber-50 border-amber-500 shadow-sm scale-102 ring-2 ring-amber-200' 
+              : 'bg-white border-slate-200 hover:border-slate-300'
+          }">
+            <span class="text-2xl flex-shrink-0">${c.emoji || '👤'}</span>
+            <div class="text-left overflow-hidden w-full">
+              <p class="font-bold text-slate-800 text-xs truncate">${c.nome}</p>
+              ${saldoDevTotal > 0 
+                ? `<span class="inline-block px-1.5 py-0.2 bg-red-500 text-white font-bold text-[9px] rounded-full">R$ ${saldoDevTotal.toFixed(2)}</span>`
+                : `<span class="text-[10px] text-emerald-600 font-semibold">Quitado</span>`
+              }
+            </div>
+          </button>
+        `;
+      }).join('');
+
+      // 2. GRID DE PRODUTOS
+      document.getElementById('lista-produtos-cards').innerHTML = db.produtos.map(p => `
+        <button onclick="adicionarItem(${p.id})" class="p-2 bg-white border border-slate-200 rounded-lg flex flex-col justify-between items-start hover:border-amber-500 active:scale-95 transition-all h-16 shadow-xs">
+          <span class="font-semibold text-slate-800 text-xs text-left line-clamp-1">${p.nome}</span>
+          <span class="text-amber-600 font-bold text-xs">R$ ${p.preco.toFixed(2)}</span>
+        </button>
+      `).join('');
+
+      // LISTA DA ABA CLIENTES
+      document.getElementById('lista-clientes-cadastrados').innerHTML = db.clientes.map(c => `
+        <li class="p-3 flex justify-between items-center text-sm font-medium bg-white">
+          <span class="flex items-center gap-2"><span class="text-2xl">${c.emoji}</span> ${c.nome}</span>
+          <div class="flex gap-2">
+            <button onclick="editarCliente('${c.id}')" class="text-xs text-blue-600 hover:bg-blue-50 px-2.5 py-1.5 rounded-lg font-bold border border-blue-200">✏️ Editar</button>
+            <button onclick="removerCliente('${c.id}')" class="text-xs text-red-600 hover:bg-red-50 px-2.5 py-1.5 rounded-lg font-bold border border-red-200">🗑️ Excluir</button>
+          </div>
+        </li>
+      `).join('');
+
+      // LISTA DA ABA PRODUTOS
+      document.getElementById('lista-produtos-cadastrados').innerHTML = db.produtos.map(p => `
+        <div class="p-3 border rounded-lg flex justify-between items-center bg-slate-50 text-sm">
+          <div>
+            <span class="font-medium block">${p.nome}</span>
+            <span class="text-xs text-slate-500">Custo: R$ ${(p.custo || 0).toFixed(2)} | Venda: R$ ${p.preco.toFixed(2)}</span>
+          </div>
+          <div class="flex gap-1">
+            <button onclick="editarProduto(${p.id})" class="text-xs text-blue-600 hover:bg-blue-50 px-2 py-1 rounded font-bold border border-blue-200">✏️</button>
+            <button onclick="removerProduto(${p.id})" class="text-xs text-red-600 hover:bg-red-50 px-2 py-1 rounded font-bold border border-red-200">🗑️</button>
+          </div>
+        </div>
+      `).join('');
+
+      renderizarComanda();
+      renderizarLucro();
+      renderizarCompras();
+      renderizarDevedores();
+      renderizarHistorico();
+      lucide.createIcons();
+    }
+
+    function selecionarCliente(nome) {
+      clienteAtual = nome;
+      const clienteObj = db.clientes.find(c => c.nome === nome);
+      const emoji = clienteObj ? clienteObj.emoji : '👤';
+      const saldoDevTotal = (db.saldos[nome] && db.saldos[nome].total) || 0;
+
+      document.getElementById('nome-cliente-comanda').innerHTML = `
+        <span class="text-base">${emoji}</span> <span>${nome}</span>
+      `;
+      document.getElementById('saldo-devedor-cliente').innerText = `Saldo Acumulado Total: R$ ${saldoDevTotal.toFixed(2)}`;
+      renderizarTudo();
+    }
+
+    function adicionarItem(produtoId) {
+      if (!clienteAtual) return alert('Selecione um amigo acima primeiro!');
+      const dataIso = document.getElementById('input-data-evento').value;
+      const chaveConsumo = `${clienteAtual}_${dataIso}`;
+
+      if (!db.consumoHoje[chaveConsumo]) db.consumoHoje[chaveConsumo] = [];
+
+      const itemExistente = db.consumoHoje[chaveConsumo].find(i => i.produtoId === produtoId);
+      if (itemExistente) {
+        itemExistente.qtd += 1;
+      } else {
+        db.consumoHoje[chaveConsumo].push({ produtoId, qtd: 1 });
+      }
+      salvarLocal();
+      renderizarTudo();
+    }
+
+    function alterarQtd(produtoId, delta) {
+      if (!clienteAtual) return;
+      const dataIso = document.getElementById('input-data-evento').value;
+      const chaveConsumo = `${clienteAtual}_${dataIso}`;
+
+      if (!db.consumoHoje[chaveConsumo]) return;
+
+      const item = db.consumoHoje[chaveConsumo].find(i => i.produtoId === produtoId);
+      if (item) {
+        item.qtd += delta;
+        if (item.qtd <= 0) {
+          db.consumoHoje[chaveConsumo] = db.consumoHoje[chaveConsumo].filter(i => i.produtoId !== produtoId);
+        }
+      }
+      salvarLocal();
+      renderizarTudo();
+    }
+
+    function renderizarComanda() {
+      const conteinerHoje = document.getElementById('itens-comanda-hoje');
+      const conteinerHistorico = document.getElementById('historico-debitos-cliente');
+      const labelTotal = document.getElementById('total-hoje');
+      const dataIso = document.getElementById('input-data-evento').value;
+      const dataBr = formatarDataBR(dataIso);
+
+      document.getElementById('label-consumo-evento').innerText = `Marcando no Evento (${dataBr}):`;
+
+      if (!clienteAtual) {
+        conteinerHoje.innerHTML = '<p class="text-slate-400 text-xs italic">Selecione um amigo.</p>';
+        conteinerHistorico.innerHTML = '<p class="text-slate-400 text-xs italic">Selecione um amigo.</p>';
+        labelTotal.innerText = 'R$ 0,00';
+        return;
+      }
+
+      const chaveConsumo = `${clienteAtual}_${dataIso}`;
+      if (!db.consumoHoje[chaveConsumo] || db.consumoHoje[chaveConsumo].length === 0) {
+        conteinerHoje.innerHTML = '<p class="text-slate-400 text-xs italic">Nenhum item selecionado nesta data.</p>';
+        labelTotal.innerText = 'R$ 0,00';
+      } else {
+        let total = 0;
+        conteinerHoje.innerHTML = db.consumoHoje[chaveConsumo].map(item => {
+          const prod = db.produtos.find(p => p.id === item.produtoId);
+          if (!prod) return '';
+          const subtotal = prod.preco * item.qtd;
+          total += subtotal;
+
+          return `
+            <div class="flex justify-between items-center p-1.5 bg-amber-50 rounded border border-amber-100 text-xs">
+              <span class="font-medium text-slate-800">${item.qtd}x ${prod.nome}</span>
+              <div class="flex items-center gap-1">
+                <span class="font-bold text-slate-700 mr-1">R$ ${subtotal.toFixed(2)}</span>
+                <button onclick="alterarQtd(${prod.id}, -1)" class="w-5 h-5 bg-slate-200 text-slate-700 font-bold rounded flex items-center justify-center">-</button>
+                <button onclick="alterarQtd(${prod.id}, 1)" class="w-5 h-5 bg-amber-500 text-slate-900 font-bold rounded flex items-center justify-center">+</button>
+              </div>
+            </div>
+          `;
+        }).join('');
+        labelTotal.innerText = `R$ ${total.toFixed(2)}`;
+      }
+
+      const historico = (db.saldos[clienteAtual] && db.saldos[clienteAtual].historico) || [];
+      if (historico.length === 0) {
+        conteinerHistorico.innerHTML = '<p class="text-slate-400 text-xs italic">Nenhum débito pendente.</p>';
+      } else {
+        conteinerHistorico.innerHTML = historico.map(h => `
+          <div class="flex justify-between items-center p-1.5 bg-slate-50 rounded border border-slate-100 text-[11px]">
+            <div>
+              <span class="font-bold text-slate-500 text-[10px] block">${h.data}</span>
+              <span class="text-slate-700 font-medium">${h.descricao}</span>
+            </div>
+            <span class="font-bold text-red-600">R$ ${h.valor.toFixed(2)}</span>
+          </div>
+        `).join('');
+      }
+    }
+
+    function lancarNaConta() {
+      const dataIso = document.getElementById('input-data-evento').value;
+      const dataBr = formatarDataBR(dataIso);
+      const chaveConsumo = `${clienteAtual}_${dataIso}`;
+
+      if (!clienteAtual || !db.consumoHoje[chaveConsumo] || db.consumoHoje[chaveConsumo].length === 0) {
+        return alert('Selecione ao menos um produto antes de lançar!');
+      }
+
+      if (!db.saldos[clienteAtual]) {
+        db.saldos[clienteAtual] = { total: 0, historico: [] };
+      }
+
+      let totalLancado = 0;
+
+      db.consumoHoje[chaveConsumo].forEach(item => {
+        const prod = db.produtos.find(p => p.id === item.produtoId);
+        if (prod) {
+          const subtotal = prod.preco * item.qtd;
+          totalLancado += subtotal;
+          db.saldos[clienteAtual].historico.unshift({
+            data: dataBr,
+            dataIso: dataIso,
+            descricao: `${item.qtd}x ${prod.nome}`,
+            valor: subtotal
+          });
+        }
+      });
+
+      db.saldos[clienteAtual].total += totalLancado;
+      delete db.consumoHoje[chaveConsumo];
+      salvarLocal();
+
+      alert(`Lançado R$ ${totalLancado.toFixed(2)} na conta de ${clienteAtual} (${dataBr})!`);
+      renderizarTudo();
+    }
+
+    function receberPagamento(meio) {
+      if (!clienteAtual) return alert('Selecione um cliente primeiro!');
+      const saldoAtual = (db.saldos[clienteAtual] && db.saldos[clienteAtual].total) || 0;
+
+      if (saldoAtual <= 0) return alert(`${clienteAtual} não possui débitos pendentes!`);
+
+      const valorPagoInput = prompt(`Saldo acumulado de ${clienteAtual}: R$ ${saldoAtual.toFixed(2)}\nDigite o valor a abater/pagar:`, saldoAtual.toFixed(2));
+      const valorPago = parseFloat(valorPagoInput);
+
+      if (valorPago && !isNaN(valorPago) && valorPago > 0) {
+        // Guardar o histórico anterior para permitir estorno se houver erro
+        const historicoBackup = JSON.parse(JSON.stringify(db.saldos[clienteAtual].historico || []));
+
+        db.saldos[clienteAtual].total -= valorPago;
+        if (db.saldos[clienteAtual].total <= 0) {
+          db.saldos[clienteAtual].total = 0;
+          db.saldos[clienteAtual].historico = []; 
+        }
+
+        const registroPagamento = {
+          id: Date.now(),
+          cliente: clienteAtual,
+          data: new Date().toLocaleString('pt-BR'),
+          valor: valorPago,
+          formaPagamento: meio,
+          historicoBackup: historicoBackup // Salva itens quitados
+        };
+
+        db.pagamentos.unshift(registroPagamento);
+        salvarLocal();
+
+        if (supabaseClient) {
+          supabaseClient.from('vendas').insert([{
+            cliente_nome: clienteAtual,
+            total: valorPago,
+            forma_pagamento: meio
+          }]).then();
+        }
+
+        alert(`Pagamento de R$ ${valorPago.toFixed(2)} recebido de ${clienteAtual}!`);
+        renderizarTudo();
+      }
+    }
+
+    // NOVA FUNÇÃO: ESTORNAR PAGAMENTO LANÇADO POR ENGANO
+    function estornarPagamento(idPagamento) {
+      const pgt = db.pagamentos.find(p => p.id === idPagamento);
+      if (!pgt) return;
+
+      if (confirm(`Deseja CANCELAR/ESTORNAR o pagamento de R$ ${pgt.valor.toFixed(2)} de ${pgt.cliente}?\nO valor voltará para a dívida do cliente.`)) {
+        
+        // Devolve o saldo pro cliente
+        if (!db.saldos[pgt.cliente]) {
+          db.saldos[pgt.cliente] = { total: 0, historico: [] };
+        }
+        
+        db.saldos[pgt.cliente].total += pgt.valor;
+
+        // Se o histórico de itens tinha sido limpo na quitação, restaura o backup
+        if (pgt.historicoBackup && pgt.historicoBackup.length > 0) {
+          db.saldos[pgt.cliente].historico = pgt.historicoBackup;
+        }
+
+        // Remove do registro de pagamentos
+        db.pagamentos = db.pagamentos.filter(p => p.id !== idPagamento);
+        salvarLocal();
+
+        alert(`Estorno de R$ ${pgt.valor.toFixed(2)} realizado com sucesso!\nA dívida de ${pgt.cliente} foi restaurada.`);
+        renderizarTudo();
+      }
+    }
+
+    function copiarExtratoWhatsApp() {
+      if (!clienteAtual) return alert('Selecione um cliente!');
+      const saldo = (db.saldos[clienteAtual] && db.saldos[clienteAtual].total) || 0;
+      const historico = (db.saldos[clienteAtual] && db.saldos[clienteAtual].historico) || [];
+
+      if (saldo <= 0) return alert(`${clienteAtual} está com a conta quitada!`);
+
+      let texto = `*EXTRATO DE CONTA ACUMULADA*\n`;
+      texto += `👤 *Cliente:* ${clienteAtual}\n`;
+      texto += `💰 *Saldo Total Pendente:* R$ ${saldo.toFixed(2)}\n\n`;
+      texto += `*Consumo por Data de Evento:*\n`;
+
+      historico.forEach(h => {
+        texto += `• *${h.data}*: ${h.descricao} - R$ ${h.valor.toFixed(2)}\n`;
+      });
+
+      texto += `\n_Favor realizar o pagamento via PIX quando possível! Obrigado!_`;
+
+      navigator.clipboard.writeText(texto).then(() => {
+        alert('Extrato detalhado por datas copiado! Abra o WhatsApp e cole.');
+      });
+    }
+
+    // ABA DE BALANÇO FINANCEIRO E LUCRO
+    function renderizarLucro() {
+      const totalRecebido = db.pagamentos.reduce((acc, p) => acc + p.valor, 0);
+      const totalFiado = Object.values(db.saldos).reduce((acc, s) => acc + (s.total || 0), 0);
+      const totalVendasGeral = totalRecebido + totalFiado;
+      const totalGastos = db.compras.reduce((acc, c) => acc + c.valor, 0);
+      const lucroLiquido = totalVendasGeral - totalGastos;
+
+      document.getElementById('stat-lucro-vendas').innerText = `R$ ${totalVendasGeral.toFixed(2)}`;
+      document.getElementById('stat-lucro-recebido').innerText = `R$ ${totalRecebido.toFixed(2)}`;
+      document.getElementById('stat-lucro-fiado').innerText = `R$ ${totalFiado.toFixed(2)}`;
+      document.getElementById('stat-lucro-gastos').innerText = `R$ ${totalGastos.toFixed(2)}`;
+
+      const elLucro = document.getElementById('stat-lucro-liquido');
+      const cardLucro = document.getElementById('card-lucro-liquido');
+      elLucro.innerText = `R$ ${lucroLiquido.toFixed(2)}`;
+
+      if (lucroLiquido >= 0) {
+        cardLucro.className = "p-5 bg-emerald-50 border-2 border-emerald-300 rounded-xl mb-6 flex justify-between items-center";
+        elLucro.className = "text-3xl font-extrabold text-emerald-700";
+      } else {
+        cardLucro.className = "p-5 bg-red-50 border-2 border-red-300 rounded-xl mb-6 flex justify-between items-center";
+        elLucro.className = "text-3xl font-extrabold text-red-700";
+      }
+
+      document.getElementById('tabela-margem-produtos').innerHTML = db.produtos.map(p => {
+        const custo = p.custo || 0;
+        const lucroItem = p.preco - custo;
+        const margemPct = p.preco > 0 ? ((lucroItem / p.preco) * 100).toFixed(0) : 0;
+
+        return `
+          <div class="p-3 border rounded-xl bg-slate-50 text-xs flex justify-between items-center">
+            <div>
+              <span class="font-bold text-slate-800 text-sm block">${p.nome}</span>
+              <span class="text-slate-500">Custo: R$ ${custo.toFixed(2)} | Venda: R$ ${p.preco.toFixed(2)}</span>
+            </div>
+            <div class="text-right">
+              <span class="font-bold text-emerald-600 block text-sm">+R$ ${lucroItem.toFixed(2)}</span>
+              <span class="text-[10px] bg-emerald-100 text-emerald-800 font-bold px-1.5 py-0.5 rounded-full">${margemPct}% margem</span>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function salvarCompra(e) {
+      e.preventDefault();
+      const desc = document.getElementById('input-desc-compra').value.trim();
+      const valor = parseFloat(document.getElementById('input-valor-compra').value);
+      const dataHoje = new Date().toLocaleDateString('pt-BR');
+
+      if (desc && valor) {
+        const novaCompra = { id: Date.now(), descricao: desc, valor: valor, data: dataHoje };
+        db.compras.unshift(novaCompra);
+        salvarLocal();
+
+        if (supabaseClient) {
+          supabaseClient.from('compras').insert([{ descricao: desc, valor: valor }]).then();
+        }
+
+        document.getElementById('input-desc-compra').value = '';
+        document.getElementById('input-valor-compra').value = '';
+        renderizarTudo();
+      }
+    }
+
+    function removerCompra(id) {
+      if (confirm('Deseja excluir este registro de gasto?')) {
+        db.compras = db.compras.filter(c => c.id !== id);
+        salvarLocal();
+        renderizarTudo();
+      }
+    }
+
+    function renderizarCompras() {
+      const conteiner = document.getElementById('lista-compras-registradas');
+      if (db.compras.length === 0) {
+        conteiner.innerHTML = '<p class="text-slate-400 text-xs italic">Nenhuma compra/gasto registrado ainda.</p>';
+        return;
+      }
+
+      conteiner.innerHTML = db.compras.map(c => `
+        <div class="p-3 border rounded-lg bg-slate-50 flex justify-between items-center text-xs">
+          <div>
+            <span class="font-bold text-slate-800 text-sm block">${c.descricao}</span>
+            <span class="text-slate-500">Comprado em ${c.data}</span>
+          </div>
+          <div class="flex items-center gap-3">
+            <span class="font-bold text-red-600 text-sm">R$ ${c.valor.toFixed(2)}</span>
+            <button onclick="removerCompra(${c.id})" class="text-red-500 hover:text-red-700">🗑️</button>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function renderizarDevedores() {
+      const selectFiltroData = document.getElementById('filtro-data-evento');
+      const dataFiltroSelecionada = selectFiltroData.value;
+
+      let datasUnicas = new Set();
+      Object.values(db.saldos).forEach(s => {
+        if (s.historico) {
+          s.historico.forEach(h => { if(h.dataIso) datasUnicas.add(h.dataIso); });
+        }
+      });
+
+      let opcoesDataHTML = '<option value="">Todas as Datas (Acumulado)</option>';
+      Array.from(datasUnicas).sort().reverse().forEach(dIso => {
+        const dBr = formatarDataBR(dIso);
+        opcoesDataHTML += `<option value="${dIso}" ${dIso === dataFiltroSelecionada ? 'selected' : ''}>Evento de ${dBr}</option>`;
+      });
+      selectFiltroData.innerHTML = opcoesDataHTML;
+
+      const conteiner = document.getElementById('lista-saldos-devedores');
+      
+      const devedores = db.clientes.map(c => {
+        const historicoCliente = (db.saldos[c.nome] && db.saldos[c.nome].historico) || [];
+        
+        let historicoFiltrado = historicoCliente;
+        if (dataFiltroSelecionada) {
+          historicoFiltrado = historicoCliente.filter(h => h.dataIso === dataFiltroSelecionada);
+        }
+
+        const saldoFiltrado = historicoFiltrado.reduce((acc, h) => acc + h.valor, 0);
+
+        return {
+          ...c,
+          saldo: dataFiltroSelecionada ? saldoFiltrado : ((db.saldos[c.nome] && db.saldos[c.nome].total) || 0),
+          historico: historicoFiltrado
+        };
+      }).filter(d => d.saldo > 0).sort((a, b) => b.saldo - a.saldo);
+
+      const totalGeralAReceber = devedores.reduce((acc, d) => acc + d.saldo, 0);
+      document.getElementById('stat-total-a-receber').innerText = `R$ ${totalGeralAReceber.toFixed(2)}`;
+
+      if (devedores.length === 0) {
+        conteiner.innerHTML = '<p class="text-slate-400 text-center py-8 col-span-full">Nenhuma pendência encontrada para este filtro! 🎉</p>';
+        return;
+      }
+
+      conteiner.innerHTML = devedores.map(d => `
+        <div class="border rounded-xl p-4 bg-slate-50 space-y-3">
+          <div class="flex justify-between items-center border-b pb-2">
+            <span class="font-bold text-slate-800 text-base flex items-center gap-2">
+              <span class="text-2xl">${d.emoji}</span> ${d.nome}
+            </span>
+            <span class="font-bold text-red-600 text-lg">R$ ${d.saldo.toFixed(2)}</span>
+          </div>
+          <p class="text-[11px] font-bold text-slate-500 uppercase">Detalhamento no Evento:</p>
+          <div class="space-y-1 max-h-36 overflow-y-auto pr-1">
+            ${d.historico.map(h => `
+              <div class="flex justify-between text-xs text-slate-600">
+                <span><b class="text-slate-800">${h.data}</b>: ${h.descricao}</span>
+                <span class="font-semibold text-slate-700">R$ ${h.valor.toFixed(2)}</span>
+              </div>
+            `).join('')}
+          </div>
+          <button onclick="selecionarCliente('${d.nome}'); mudarAba('comandas');" class="w-full py-2 bg-amber-500 hover:bg-amber-600 text-slate-900 font-bold rounded-lg text-xs">
+            Abrir Conta / Receber
+          </button>
+        </div>
+      `).join('');
+    }
+
+    // LISTA DE PAGAMENTOS COM BOTÃO DE ESTORNO
+    function renderizarHistorico() {
+      const selectFiltro = document.getElementById('filtro-cliente-historico');
+      const valFiltro = selectFiltro.value;
+
+      selectFiltro.innerHTML = '<option value="">Todos os clientes</option>' + 
+        db.clientes.map(c => `<option value="${c.nome}" ${c.nome === valFiltro ? 'selected' : ''}>${c.nome}</option>`).join('');
+
+      let pgtsFiltrados = db.pagamentos;
+      if (valFiltro) pgtsFiltrados = pgtsFiltrados.filter(p => p.cliente === valFiltro);
+
+      const totalArrecadado = pgtsFiltrados.reduce((acc, p) => acc + p.valor, 0);
+      document.getElementById('stat-total-arrecadado').innerText = `R$ ${totalArrecadado.toFixed(2)}`;
+
+      const conteiner = document.getElementById('lista-historico-pagamentos');
+      if (pgtsFiltrados.length === 0) {
+        conteiner.innerHTML = '<p class="text-slate-400 text-center py-6 text-xs">Nenhum pagamento registrado ainda.</p>';
+        return;
+      }
+
+      conteiner.innerHTML = pgtsFiltrados.map(p => `
+        <div class="p-3 border rounded-lg bg-slate-50 flex justify-between items-center text-xs">
+          <div>
+            <span class="font-bold text-slate-800 text-sm block">${p.cliente}</span>
+            <span class="text-slate-500">${p.data} • Pago via ${p.formaPagamento}</span>
+          </div>
+          <div class="flex items-center gap-3">
+            <span class="font-bold text-emerald-600 text-base">R$ ${p.valor.toFixed(2)}</span>
+            <button onclick="estornarPagamento(${p.id})" class="text-xs bg-red-100 hover:bg-red-200 text-red-700 font-bold px-2 py-1 rounded border border-red-300" title="Cancelar este pagamento">
+              ❌ Estornar
+            </button>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function salvarCliente(e) {
+      e.preventDefault();
+      const input = document.getElementById('input-nome-cliente');
+      const selectEmoji = document.getElementById('select-emoji-cliente');
+      const nome = input.value.trim();
+      const emoji = selectEmoji.value;
+
+      if (nome) {
+        if (db.clientes.some(c => c.nome.toLowerCase() === nome.toLowerCase())) return alert('Amigo já cadastrado!');
+        db.clientes.push({ id: String(Date.now()), nome, emoji });
+        salvarLocal();
+        input.value = '';
+        renderizarTudo();
+      }
+    }
+
+    function editarCliente(id) {
+      const cliente = db.clientes.find(c => String(c.id) === String(id));
+      if (!cliente) return;
+      const novoNome = prompt('Nome do amigo:', cliente.nome);
+      if (novoNome && novoNome.trim() !== '') {
+        const antigo = cliente.nome;
+        cliente.nome = novoNome.trim();
+        if (db.saldos[antigo]) {
+          db.saldos[cliente.nome] = db.saldos[antigo];
+          delete db.saldos[antigo];
+        }
+        salvarLocal();
+        renderizarTudo();
+      }
+    }
+
+    function removerCliente(id) {
+      const cliente = db.clientes.find(c => String(c.id) === String(id));
+      if (!cliente) return;
+      if (confirm(`Remover ${cliente.nome}?`)) {
+        db.clientes = db.clientes.filter(c => String(c.id) !== String(id));
+        delete db.saldos[cliente.nome];
+        salvarLocal();
+        renderizarTudo();
+      }
+    }
+
+    function salvarProduto(e) {
+      e.preventDefault();
+      const nome = document.getElementById('input-nome-prod').value.trim();
+      const custo = parseFloat(document.getElementById('input-custo-prod').value) || 0;
+      const preco = parseFloat(document.getElementById('input-preco-prod').value);
+      if (nome && preco) {
+        db.produtos.push({ id: Date.now(), nome, custo, preco });
+        salvarLocal();
+        document.getElementById('input-nome-prod').value = '';
+        document.getElementById('input-custo-prod').value = '';
+        document.getElementById('input-preco-prod').value = '';
+        renderizarTudo();
+      }
+    }
+
+    function editarProduto(id) {
+      const prod = db.produtos.find(p => p.id === id);
+      if (!prod) return;
+      const novoNome = prompt('Nome:', prod.nome);
+      const novoCusto = prompt('Custo (Ex: 2.50):', prod.custo || 0);
+      const novoPreco = prompt('Preço de Venda (Ex: 6.00):', prod.preco);
+
+      if (novoNome && novoPreco) {
+        prod.nome = novoNome.trim();
+        prod.custo = parseFloat(novoCusto) || 0;
+        prod.preco = parseFloat(novoPreco);
+        salvarLocal();
+        renderizarTudo();
+      }
+    }
+
+    function removerProduto(id) {
+      if (confirm('Remover produto?')) {
+        db.produtos = db.produtos.filter(p => p.id !== id);
+        salvarLocal();
+        renderizarTudo();
+      }
+    }
+
+    function limparConsumoHoje() {
+      if (clienteAtual) {
+        const dataIso = document.getElementById('input-data-evento').value;
+        const chaveConsumo = `${clienteAtual}_${dataIso}`;
+        if (db.consumoHoje[chaveConsumo]) {
+          delete db.consumoHoje[chaveConsumo];
+          salvarLocal();
+          renderizarTudo();
+        }
+      }
+    }
+
+    preencherSelectEmojis();
+    renderizarTudo();
+  </script>
+</body>
+</html>

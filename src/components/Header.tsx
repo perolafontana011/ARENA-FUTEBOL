@@ -3,6 +3,7 @@ import { Shield, Bell, Lock, Sun, Moon, Database, CheckCircle2 } from 'lucide-re
 import { useApp } from '../context/AppContext';
 import { AdminPinModal } from './AdminPinModal';
 import { NotificationCenter } from './NotificationCenter';
+import { DatabaseStatusModal } from './DatabaseStatusModal';
 
 export const Header: React.FC = () => {
   const { 
@@ -18,6 +19,7 @@ export const Header: React.FC = () => {
   } = useApp();
 
   const [isPinModalOpen, setIsPinModalOpen] = useState(false);
+  const [isDbModalOpen, setIsDbModalOpen] = useState(false);
   const [targetTabPending, setTargetTabPending] = useState<'cashflow' | 'reports' | null>(null);
   const [isNotifOpen, setIsNotifOpen] = useState(false);
 
@@ -52,12 +54,17 @@ export const Header: React.FC = () => {
                   Painel do Dono
                 </span>
               </div>
-              <div className="flex items-center gap-1.5 text-[11px] font-semibold text-emerald-700 dark:text-emerald-400">
+              <button
+                type="button"
+                onClick={() => setIsDbModalOpen(true)}
+                className="flex items-center gap-1.5 text-[11px] font-semibold text-emerald-700 dark:text-emerald-400 hover:underline cursor-pointer text-left"
+                title="Ver detalhes do banco de dados em tempo real"
+              >
                 <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
                 <span className="font-mono text-[10px] uppercase">
-                  {isFirestoreConnected ? 'Banco Firestore Conectado' : 'Modo Offline Ativo'}
+                  {isFirestoreConnected ? 'Banco Firestore Ativo' : 'Modo Offline Ativo'}
                 </span>
-              </div>
+              </button>
             </div>
           </div>
 
@@ -123,11 +130,16 @@ export const Header: React.FC = () => {
           {/* Zone 3: Primary Action block */}
           <div className="flex items-center gap-2 shrink-0">
             {/* Database indicator pill */}
-            <div className="hidden lg:flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-slate-100 dark:bg-slate-800 text-[11px] font-mono text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700">
-              <Database className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
-              <span>Firestore</span>
+            <button
+              type="button"
+              onClick={() => setIsDbModalOpen(true)}
+              className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-[11px] font-mono text-slate-800 dark:text-slate-200 border border-slate-200 dark:border-slate-700 cursor-pointer transition-all shadow-2xs group"
+              title="Clique para inspecionar o status do Banco de Dados Firestore"
+            >
+              <Database className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400 group-hover:scale-110 transition-transform" />
+              <span className="font-bold">Firestore</span>
               <CheckCircle2 className="w-3 h-3 text-emerald-500" />
-            </div>
+            </button>
 
             {/* Theme Toggle Button */}
             <button
@@ -233,6 +245,12 @@ export const Header: React.FC = () => {
       <NotificationCenter
         isOpen={isNotifOpen}
         onClose={() => setIsNotifOpen(false)}
+      />
+
+      {/* Database Status Modal */}
+      <DatabaseStatusModal
+        isOpen={isDbModalOpen}
+        onClose={() => setIsDbModalOpen(false)}
       />
     </>
   );

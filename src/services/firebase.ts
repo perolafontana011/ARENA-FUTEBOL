@@ -52,5 +52,6 @@ export {
   updateDoc,
   deleteDoc,
   onSnapshot,
-  writeBatch
+  writeBatch,
+  getDocFromServer
 };
