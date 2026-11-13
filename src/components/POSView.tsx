@@ -41,6 +41,10 @@ export const POSView: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('pix');
   const [selectedCustomerId, setSelectedCustomerId] = useState<string>('');
+  const [fiadoMode, setFiadoMode] = useState<'inline' | 'existing'>('inline');
+  const [fiadoDirectName, setFiadoDirectName] = useState<string>('');
+  const [fiadoDirectPhone, setFiadoDirectPhone] = useState<string>('');
+  const [fiadoDirectTeam, setFiadoDirectTeam] = useState<string>('');
   const [cashTendered, setCashTendered] = useState<string>('');
   const [saleSuccessMessage, setSaleSuccessMessage] = useState<string>('');
   const [saleErrorMessage, setSaleErrorMessage] = useState<string>('');
@@ -78,9 +82,21 @@ export const POSView: React.FC = () => {
       return;
     }
 
-    if (paymentMethod === 'fiado' && !selectedCustomerId) {
-      setSaleErrorMessage('Selecione um cliente para registrar na caderneta de fiado.');
-      return;
+    if (paymentMethod === 'fiado') {
+      if (fiadoMode === 'existing' && !selectedCustomerId) {
+        setSaleErrorMessage('Selecione um cliente cadastrado ou mude para "Nome e Número".');
+        return;
+      }
+      if (fiadoMode === 'inline') {
+        if (!fiadoDirectName.trim()) {
+          setSaleErrorMessage('Digite o nome da pessoa para anotar no fiado.');
+          return;
+        }
+        if (fiadoDirectPhone.replace(/\D/g, '').length < 8) {
+          setSaleErrorMessage('Digite o número de telefone/WhatsApp (com DDD) da pessoa.');
+          return;
+        }
+      }
     }
 
     if (paymentMethod === 'pix') {
@@ -94,7 +110,15 @@ export const POSView: React.FC = () => {
   const finalizeSale = () => {
     const result = makeSale({
       paymentMethod,
-      customerId: selectedCustomerId || undefined,
+      customerId: paymentMethod === 'fiado' && fiadoMode === 'existing' ? selectedCustomerId || undefined : undefined,
+      fiadoCustomerData:
+        paymentMethod === 'fiado' && fiadoMode === 'inline'
+          ? {
+              name: fiadoDirectName,
+              phone: fiadoDirectPhone,
+              teamOrShirt: fiadoDirectTeam,
+            }
+          : undefined,
       notes: paymentMethod === 'dinheiro' && cashGivenNumber > 0 
         ? `Recebido R$ ${cashGivenNumber.toFixed(2)}, Troco: R$ ${changeDue.toFixed(2)}` 
         : undefined,
@@ -104,6 +128,9 @@ export const POSView: React.FC = () => {
       setSaleSuccessMessage(`Pedido de ${formatBRL(result.sale?.totalAmount || 0)} finalizado com sucesso!`);
       setCashTendered('');
       setSelectedCustomerId('');
+      setFiadoDirectName('');
+      setFiadoDirectPhone('');
+      setFiadoDirectTeam('');
       setTimeout(() => setSaleSuccessMessage(''), 4500);
     } else {
       setSaleErrorMessage(result.error || 'Erro ao registrar venda.');
@@ -568,56 +595,140 @@ export const POSView: React.FC = () => {
             </div>
           )}
 
-          {/* Fiado Customer Picker */}
+          {/* Fiado Customer Picker + Direct Name & Number */}
           {paymentMethod === 'fiado' && (
-            <div className="p-3 bg-amber-50 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/30 rounded-xl space-y-2.5">
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-bold text-amber-900 dark:text-amber-300">
-                  Caderneta / Cliente do Fiado
+            <div className="p-3.5 bg-amber-50 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/30 rounded-2xl space-y-3">
+              <div className="flex items-center justify-between gap-2">
+                <span className="text-xs font-extrabold text-amber-900 dark:text-amber-300">
+                  Dados do Fiado / Caderneta
                 </span>
-                <button
-                  type="button"
-                  onClick={() => setShowQuickCustomerModal(true)}
-                  className="text-[11px] text-amber-700 dark:text-amber-400 underline hover:text-amber-900 font-bold"
-                >
-                  + Novo Cliente
-                </button>
+                <div className="flex bg-amber-100/80 dark:bg-slate-900 p-0.5 rounded-lg border border-amber-200 dark:border-slate-700 text-[11px] font-bold">
+                  <button
+                    type="button"
+                    onClick={() => setFiadoMode('inline')}
+                    className={`px-2 py-1 rounded-md transition-all cursor-pointer ${
+                      fiadoMode === 'inline'
+                        ? 'bg-white dark:bg-slate-800 text-amber-900 dark:text-amber-300 shadow-2xs'
+                        : 'text-amber-700/70 dark:text-slate-400'
+                    }`}
+                  >
+                    Nome e Número
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setFiadoMode('existing')}
+                    className={`px-2 py-1 rounded-md transition-all cursor-pointer ${
+                      fiadoMode === 'existing'
+                        ? 'bg-white dark:bg-slate-800 text-amber-900 dark:text-amber-300 shadow-2xs'
+                        : 'text-amber-700/70 dark:text-slate-400'
+                    }`}
+                  >
+                    Já Cadastrado
+                  </button>
+                </div>
               </div>
 
-              <select
-                value={selectedCustomerId}
-                onChange={(e) => setSelectedCustomerId(e.target.value)}
-                className="w-full bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-xs text-slate-900 dark:text-white rounded-lg p-2 focus:outline-none"
-              >
-                <option value="">Selecione o cliente da barraca...</option>
-                {customers.map((c) => (
-                  <option key={c.id} value={c.id}>
-                    {c.name} ({c.teamOrShirt}) — Débito: {formatBRL(c.totalDebt)} / Limite: {formatBRL(c.creditLimit)}
-                  </option>
-                ))}
-              </select>
-
-              {selectedCustomer && (
-                <div className="text-[11px] text-slate-700 dark:text-slate-300 bg-white dark:bg-slate-900/90 p-2.5 rounded-lg border border-slate-200 dark:border-slate-800 space-y-1">
-                  <div className="flex justify-between">
-                    <span>Saldo devedor atual:</span>
-                    <span className="font-mono font-bold text-rose-600 dark:text-rose-400">
-                      {formatBRL(selectedCustomer.totalDebt)}
-                    </span>
+              {fiadoMode === 'inline' ? (
+                <div className="space-y-2">
+                  <div>
+                    <label className="text-[11px] font-bold text-amber-900 dark:text-amber-300 block mb-1">
+                      Nome da Pessoa *
+                    </label>
+                    <input
+                      type="text"
+                      value={fiadoDirectName}
+                      onChange={(e) => setFiadoDirectName(e.target.value)}
+                      placeholder="Ex: Betão do Camisa 10"
+                      className="w-full bg-white dark:bg-slate-900 border border-amber-300 dark:border-slate-700 rounded-xl px-3 py-2 text-xs text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:border-amber-500"
+                    />
                   </div>
-                  <div className="flex justify-between">
-                    <span>Após este pedido:</span>
-                    <span className="font-mono font-bold text-amber-700 dark:text-amber-300">
-                      {formatBRL(selectedCustomer.totalDebt + cartTotal)}
-                    </span>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                    <div>
+                      <label className="text-[11px] font-bold text-amber-900 dark:text-amber-300 block mb-1">
+                        Número / WhatsApp *
+                      </label>
+                      <input
+                        type="tel"
+                        value={fiadoDirectPhone}
+                        onChange={(e) => setFiadoDirectPhone(e.target.value)}
+                        placeholder="Ex: 11987654321"
+                        className="w-full bg-white dark:bg-slate-900 border border-amber-300 dark:border-slate-700 rounded-xl px-3 py-2 text-xs text-slate-900 dark:text-white font-mono placeholder-slate-400 focus:outline-none focus:border-amber-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-[11px] font-bold text-amber-900 dark:text-amber-300 block mb-1">
+                        Time / Camisa (Opc.)
+                      </label>
+                      <input
+                        type="text"
+                        value={fiadoDirectTeam}
+                        onChange={(e) => setFiadoDirectTeam(e.target.value)}
+                        placeholder="Ex: Unidos FC"
+                        className="w-full bg-white dark:bg-slate-900 border border-amber-300 dark:border-slate-700 rounded-xl px-3 py-2 text-xs text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:border-amber-500"
+                      />
+                    </div>
                   </div>
-                  <div className="flex justify-between text-slate-500">
-                    <span>Limite disponível:</span>
-                    <span className="font-mono">
-                      {formatBRL(Math.max(0, selectedCustomer.creditLimit - (selectedCustomer.totalDebt + cartTotal)))}
-                    </span>
-                  </div>
+                  <p className="text-[10px] text-amber-800/80 dark:text-amber-300/80 leading-snug">
+                    Salva automaticamente na caderneta de clientes e no banco de dados para cobrança no WhatsApp/PIX.
+                  </p>
                 </div>
+              ) : (
+                <>
+                  <div className="flex items-center justify-between">
+                    <span className="text-[11px] text-amber-800 dark:text-amber-300">
+                      Escolha na lista salva:
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => setShowQuickCustomerModal(true)}
+                      className="text-[11px] text-amber-700 dark:text-amber-400 underline hover:text-amber-900 font-bold cursor-pointer"
+                    >
+                      + Cadastrar Completo
+                    </button>
+                  </div>
+
+                  <select
+                    value={selectedCustomerId}
+                    onChange={(e) => setSelectedCustomerId(e.target.value)}
+                    className="w-full bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-xs text-slate-900 dark:text-white rounded-xl p-2.5 focus:outline-none"
+                  >
+                    <option value="">Selecione o cliente da barraca...</option>
+                    {customers.map((c) => (
+                      <option key={c.id} value={c.id}>
+                        {c.name} ({c.phone}) — Débito: {formatBRL(c.totalDebt)}
+                      </option>
+                    ))}
+                  </select>
+
+                  {selectedCustomer && (
+                    <div className="text-[11px] text-slate-700 dark:text-slate-300 bg-white dark:bg-slate-900/90 p-2.5 rounded-xl border border-slate-200 dark:border-slate-800 space-y-1">
+                      <div className="flex justify-between">
+                        <span>WhatsApp cadastrado:</span>
+                        <span className="font-mono font-bold text-slate-900 dark:text-white">
+                          {selectedCustomer.phone}
+                        </span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span>Saldo devedor atual:</span>
+                        <span className="font-mono font-bold text-rose-600 dark:text-rose-400">
+                          {formatBRL(selectedCustomer.totalDebt)}
+                        </span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span>Após este pedido:</span>
+                        <span className="font-mono font-bold text-amber-700 dark:text-amber-300">
+                          {formatBRL(selectedCustomer.totalDebt + cartTotal)}
+                        </span>
+                      </div>
+                      <div className="flex justify-between text-slate-500">
+                        <span>Limite disponível:</span>
+                        <span className="font-mono">
+                          {formatBRL(Math.max(0, selectedCustomer.creditLimit - (selectedCustomer.totalDebt + cartTotal)))}
+                        </span>
+                      </div>
+                    </div>
+                  )}
+                </>
               )}
             </div>
           )}

@@ -72,6 +72,11 @@ interface AppContextType {
   makeSale: (params: { 
     paymentMethod: PaymentMethod; 
     customerId?: string; 
+    fiadoCustomerData?: {
+      name: string;
+      phone: string;
+      teamOrShirt?: string;
+    };
     notes?: string; 
   }) => { success: boolean; sale?: Sale; error?: string };
 
@@ -87,6 +92,8 @@ interface AppContextType {
     customerId: string; 
     amount: number; 
     paymentMethod: 'pix' | 'dinheiro'; 
+    payerName?: string;
+    payerPhone?: string;
     notes?: string; 
     pixTxId?: string;
   }) => DebtPayment | null;
@@ -518,10 +525,16 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   const makeSale = ({
     paymentMethod,
     customerId,
+    fiadoCustomerData,
     notes,
   }: {
     paymentMethod: PaymentMethod;
     customerId?: string;
+    fiadoCustomerData?: {
+      name: string;
+      phone: string;
+      teamOrShirt?: string;
+    };
     notes?: string;
   }) => {
     if (cart.length === 0) {
@@ -542,18 +555,56 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       }
     }
 
-    // Check customer credit limit if 'fiado'
+    // Resolve or create customer if 'fiado'
     let selectedCustomer: Customer | undefined;
+    let isNewInlineCustomer = false;
+
     if (paymentMethod === 'fiado') {
-      if (!customerId) {
-        return { success: false, error: 'Selecione um cliente para registrar no fiado.' };
+      if (customerId) {
+        selectedCustomer = customers.find((c) => c.id === customerId);
+        if (!selectedCustomer) {
+          return { success: false, error: 'Cliente não encontrado.' };
+        }
+      } else if (fiadoCustomerData && fiadoCustomerData.name.trim()) {
+        const cleanName = fiadoCustomerData.name.trim();
+        const cleanPhone = fiadoCustomerData.phone.replace(/\D/g, '');
+        if (cleanPhone.length < 8) {
+          return { success: false, error: 'Informe um número de telefone/WhatsApp válido para anotar no fiado.' };
+        }
+
+        // Try matching an existing customer by phone digits or exact name
+        const existingMatch = customers.find(
+          (c) =>
+            (cleanPhone && c.phone.replace(/\D/g, '') === cleanPhone) ||
+            c.name.trim().toLowerCase() === cleanName.toLowerCase()
+        );
+
+        if (existingMatch) {
+          selectedCustomer = {
+            ...existingMatch,
+            name: cleanName,
+            phone: cleanPhone || existingMatch.phone,
+            teamOrShirt: fiadoCustomerData.teamOrShirt?.trim() || existingMatch.teamOrShirt,
+          };
+        } else {
+          isNewInlineCustomer = true;
+          selectedCustomer = {
+            id: `cust-${Date.now()}`,
+            name: cleanName,
+            phone: cleanPhone,
+            teamOrShirt: fiadoCustomerData.teamOrShirt?.trim() || 'Torcedor',
+            creditLimit: Math.max(150, Math.ceil(cartTotal / 50) * 50),
+            totalDebt: 0,
+            status: 'em_dia',
+            createdAt: new Date().toISOString(),
+          };
+        }
+      } else {
+        return { success: false, error: 'Informe o nome e o número da pessoa ou selecione um cliente cadastrado para o fiado.' };
       }
-      selectedCustomer = customers.find((c) => c.id === customerId);
-      if (!selectedCustomer) {
-        return { success: false, error: 'Cliente não encontrado.' };
-      }
+
       const newDebt = selectedCustomer.totalDebt + cartTotal;
-      if (newDebt > selectedCustomer.creditLimit) {
+      if (!isNewInlineCustomer && newDebt > selectedCustomer.creditLimit) {
         return {
           success: false,
           error: `Limite de fiado excedido! O limite de ${selectedCustomer.name} é de R$ ${selectedCustomer.creditLimit.toFixed(2)}, e o débito passaria para R$ ${newDebt.toFixed(2)}.`,
@@ -608,21 +659,40 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       })
     );
 
-    // 2. If fiado, update customer totalDebt and status
+    // 2. If fiado, create or update customer totalDebt and status
     if (paymentMethod === 'fiado' && selectedCustomer) {
       const newTotalDebt = selectedCustomer.totalDebt + totalAmount;
       const updatedStatus = newTotalDebt > 0 ? (selectedCustomer.status === 'inadimplente' ? 'inadimplente' : 'em_dia') : 'em_dia';
-      const updatedCustomer: Partial<Customer> = {
-        totalDebt: newTotalDebt,
-        lastPurchaseDate: new Date().toISOString(),
-        status: updatedStatus,
-      };
 
-      setCustomers((prev) =>
-        prev.map((c) => (c.id === selectedCustomer!.id ? { ...c, ...updatedCustomer } : c))
-      );
+      if (isNewInlineCustomer) {
+        const createdWithDebt: Customer = {
+          ...selectedCustomer,
+          totalDebt: newTotalDebt,
+          lastPurchaseDate: new Date().toISOString(),
+          status: updatedStatus,
+        };
+        setCustomers((prev) => [createdWithDebt, ...prev]);
+        setDoc(doc(db, COLLECTIONS.CUSTOMERS, createdWithDebt.id), createdWithDebt).catch(console.error);
+        addNotification(
+          '👤 Novo Cliente Cadastrado no Fiado',
+          `${createdWithDebt.name} (WhatsApp: ${createdWithDebt.phone}) iniciou comanda de R$ ${newTotalDebt.toFixed(2)}.`,
+          'sistema'
+        );
+      } else {
+        const updatedCustomer: Partial<Customer> = {
+          name: fiadoCustomerData?.name?.trim() || selectedCustomer.name,
+          phone: fiadoCustomerData?.phone?.replace(/\D/g, '') || selectedCustomer.phone,
+          totalDebt: newTotalDebt,
+          lastPurchaseDate: new Date().toISOString(),
+          status: updatedStatus,
+        };
 
-      updateDoc(doc(db, COLLECTIONS.CUSTOMERS, selectedCustomer.id), updatedCustomer).catch(console.error);
+        setCustomers((prev) =>
+          prev.map((c) => (c.id === selectedCustomer!.id ? { ...c, ...updatedCustomer } : c))
+        );
+
+        updateDoc(doc(db, COLLECTIONS.CUSTOMERS, selectedCustomer.id), updatedCustomer).catch(console.error);
+      }
     }
 
     // 3. Record Sale to Firestore & Local
@@ -696,12 +766,16 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     customerId,
     amount,
     paymentMethod,
+    payerName,
+    payerPhone,
     notes,
     pixTxId,
   }: {
     customerId: string;
     amount: number;
     paymentMethod: 'pix' | 'dinheiro';
+    payerName?: string;
+    payerPhone?: string;
     notes?: string;
     pixTxId?: string;
   }): DebtPayment | null => {
@@ -711,26 +785,32 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     const actualAmount = Math.min(amount, customer.totalDebt);
     if (actualAmount <= 0) return null;
 
+    const resolvedName = payerName?.trim() || customer.name;
+    const cleanPhone = payerPhone ? payerPhone.replace(/\D/g, '') : '';
+    const resolvedPhone = cleanPhone.length >= 8 ? cleanPhone : customer.phone;
+
     const payment: DebtPayment = {
       id: `pay-${Date.now()}`,
       timestamp: new Date().toISOString(),
       customerId,
-      customerName: customer.name,
+      customerName: resolvedName,
       amount: actualAmount,
       paymentMethod,
       pixTxId: pixTxId || (paymentMethod === 'pix' ? `PIX-${Date.now().toString(36).toUpperCase()}` : undefined),
-      notes,
+      notes: notes || (resolvedPhone ? `WhatsApp: ${resolvedPhone}` : undefined),
     };
 
     const newDebt = Math.max(0, customer.totalDebt - actualAmount);
     const newStatus = newDebt === 0 ? 'em_dia' : customer.status;
 
-    // Update customer debt
+    // Update customer debt + name/phone if updated
     setCustomers((prev) =>
       prev.map((c) => {
         if (c.id === customerId) {
           return {
             ...c,
+            name: resolvedName,
+            phone: resolvedPhone,
             totalDebt: newDebt,
             status: newStatus,
           };
@@ -740,6 +820,8 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     );
 
     updateDoc(doc(db, COLLECTIONS.CUSTOMERS, customerId), {
+      name: resolvedName,
+      phone: resolvedPhone,
       totalDebt: newDebt,
       status: newStatus,
     }).catch(console.error);
@@ -751,7 +833,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     // Notify
     addNotification(
       `💸 Quitação ${paymentMethod === 'pix' ? 'PIX' : 'em Dinheiro'} Recebida!`,
-      `${customer.name} quitou R$ ${actualAmount.toFixed(2)}. Restante da comanda: R$ ${newDebt.toFixed(2)}.`,
+      `${resolvedName} (${resolvedPhone}) quitou R$ ${actualAmount.toFixed(2)}. Restante da comanda: R$ ${newDebt.toFixed(2)}.`,
       paymentMethod === 'pix' ? 'pix' : 'sistema'
     );
 

@@ -39,6 +39,8 @@ export const CustomersView: React.FC = () => {
   const [selectedCustomerForPix, setSelectedCustomerForPix] = useState<Customer | null>(null);
   const [selectedCustomerForCash, setSelectedCustomerForCash] = useState<Customer | null>(null);
   const [cashAmountToSettle, setCashAmountToSettle] = useState<string>('');
+  const [cashPayerName, setCashPayerName] = useState<string>('');
+  const [cashPayerPhone, setCashPayerPhone] = useState<string>('');
   const [selectedTemplateId, setSelectedTemplateId] = useState<string>('amigavel_jogo');
 
   // Form State for New Customer
@@ -136,10 +138,14 @@ export const CustomersView: React.FC = () => {
       customerId: selectedCustomerForCash.id,
       amount,
       paymentMethod: 'dinheiro',
-      notes: 'Recebido em espécie no balcão',
+      payerName: cashPayerName,
+      payerPhone: cashPayerPhone,
+      notes: `Recebido em espécie no balcão (${cashPayerName || selectedCustomerForCash.name})`,
     });
     setSelectedCustomerForCash(null);
     setCashAmountToSettle('');
+    setCashPayerName('');
+    setCashPayerPhone('');
   };
 
   const selectedTemplate = COLLECTION_TEMPLATES.find((t) => t.id === selectedTemplateId) || COLLECTION_TEMPLATES[0];
@@ -460,8 +466,10 @@ export const CustomersView: React.FC = () => {
                         onClick={() => {
                           setSelectedCustomerForCash(cust);
                           setCashAmountToSettle(String(cust.totalDebt));
+                          setCashPayerName(cust.name);
+                          setCashPayerPhone(cust.phone);
                         }}
-                        className="hover:text-emerald-700 dark:hover:text-emerald-400 transition-colors flex items-center gap-1 font-semibold"
+                        className="hover:text-emerald-700 dark:hover:text-emerald-400 transition-colors flex items-center gap-1 font-semibold cursor-pointer"
                       >
                         <Banknote className="w-3.5 h-3.5 text-emerald-600" />
                         Receber Dinheiro
@@ -688,12 +696,16 @@ export const CustomersView: React.FC = () => {
           onClose={() => setSelectedCustomerForPix(null)}
           amount={selectedCustomerForPix.totalDebt}
           customerName={selectedCustomerForPix.name}
+          customerPhone={selectedCustomerForPix.phone}
+          showPayerFields={true}
           description={`Quitacao Comanda ${selectedCustomerForPix.name.slice(0, 15)}`}
-          onPaymentConfirmed={() => {
+          onPaymentConfirmed={(payerInfo) => {
             settleCustomerDebt({
               customerId: selectedCustomerForPix.id,
               amount: selectedCustomerForPix.totalDebt,
               paymentMethod: 'pix',
+              payerName: payerInfo?.name,
+              payerPhone: payerInfo?.phone,
               notes: 'Quitação integral via PIX no QR Code',
             });
             setSelectedCustomerForPix(null);
@@ -710,15 +722,45 @@ export const CustomersView: React.FC = () => {
               Receber Quitação em Dinheiro
             </h3>
             <p className="text-xs text-slate-500 dark:text-slate-400 mb-3">
-              Cliente: <strong className="text-slate-900 dark:text-white">{selectedCustomerForCash.name}</strong> · Débito Total:{' '}
+              Débito Total na Comanda:{' '}
               <strong className="text-amber-600 dark:text-amber-400 font-mono">
                 {formatBRL(selectedCustomerForCash.totalDebt)}
               </strong>
             </p>
 
-            <form onSubmit={handleSettleCash} className="space-y-4">
+            <form onSubmit={handleSettleCash} className="space-y-3.5">
               <div>
-                <label className="text-xs text-slate-700 dark:text-slate-300 block mb-1">Valor Recebido (R$)</label>
+                <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 block mb-1">
+                  Nome da Pessoa *
+                </label>
+                <input
+                  type="text"
+                  required
+                  value={cashPayerName}
+                  onChange={(e) => setCashPayerName(e.target.value)}
+                  placeholder="Nome completo"
+                  className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-700 rounded-xl px-3 py-2 text-xs text-slate-900 dark:text-white focus:outline-none focus:border-emerald-600"
+                />
+              </div>
+
+              <div>
+                <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 block mb-1">
+                  Número / WhatsApp *
+                </label>
+                <input
+                  type="tel"
+                  required
+                  value={cashPayerPhone}
+                  onChange={(e) => setCashPayerPhone(e.target.value)}
+                  placeholder="Ex: 11987654321"
+                  className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-700 rounded-xl px-3 py-2 text-xs text-slate-900 dark:text-white font-mono focus:outline-none focus:border-emerald-600"
+                />
+              </div>
+
+              <div>
+                <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 block mb-1">
+                  Valor Recebido (R$)
+                </label>
                 <input
                   type="number"
                   step="any"
@@ -730,17 +772,17 @@ export const CustomersView: React.FC = () => {
                 />
               </div>
 
-              <div className="flex gap-2">
+              <div className="flex gap-2 pt-1">
                 <button
                   type="button"
                   onClick={() => setSelectedCustomerForCash(null)}
-                  className="flex-1 py-2.5 rounded-xl border border-slate-300 dark:border-slate-700 text-xs font-bold text-slate-600 dark:text-slate-300"
+                  className="flex-1 py-2.5 rounded-xl border border-slate-300 dark:border-slate-700 text-xs font-bold text-slate-600 dark:text-slate-300 cursor-pointer"
                 >
                   Cancelar
                 </button>
                 <button
                   type="submit"
-                  className="flex-1 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-xs font-black text-white"
+                  className="flex-1 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-xs font-black text-white cursor-pointer"
                 >
                   Confirmar Baixa
                 </button>

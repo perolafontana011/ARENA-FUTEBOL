@@ -8,9 +8,11 @@ interface PixModalProps {
   onClose: () => void;
   amount: number;
   customerName?: string;
+  customerPhone?: string;
   customerId?: string;
   description?: string;
-  onPaymentConfirmed?: () => void;
+  showPayerFields?: boolean;
+  onPaymentConfirmed?: (payerInfo?: { name: string; phone: string }) => void;
 }
 
 export const PixModal: React.FC<PixModalProps> = ({
@@ -18,7 +20,9 @@ export const PixModal: React.FC<PixModalProps> = ({
   onClose,
   amount,
   customerName,
+  customerPhone,
   description = 'Consumo Barraca do Campeonato',
+  showPayerFields = false,
   onPaymentConfirmed,
 }) => {
   const { pixConfig } = useApp();
@@ -26,6 +30,15 @@ export const PixModal: React.FC<PixModalProps> = ({
   const [copiaECola, setCopiaECola] = useState<string>('');
   const [copied, setCopied] = useState<boolean>(false);
   const [isConfirming, setIsConfirming] = useState<boolean>(false);
+  const [payerName, setPayerName] = useState<string>(customerName || '');
+  const [payerPhone, setPayerPhone] = useState<string>(customerPhone || '');
+
+  useEffect(() => {
+    if (isOpen) {
+      setPayerName(customerName || '');
+      setPayerPhone(customerPhone || '');
+    }
+  }, [isOpen, customerName, customerPhone]);
 
   useEffect(() => {
     if (isOpen && amount > 0) {
@@ -56,7 +69,7 @@ export const PixModal: React.FC<PixModalProps> = ({
     setTimeout(() => {
       setIsConfirming(false);
       if (onPaymentConfirmed) {
-        onPaymentConfirmed();
+        onPaymentConfirmed({ name: payerName, phone: payerPhone });
       }
       onClose();
     }, 700);
@@ -86,10 +99,40 @@ export const PixModal: React.FC<PixModalProps> = ({
               <span className="text-xs text-slate-500 dark:text-slate-400">Quitação Instantânea</span>
             </div>
             <h3 className="text-base font-extrabold text-slate-900 dark:text-white tracking-tight mt-0.5">
-              {customerName ? `Quitação de Comanda: ${customerName}` : 'Pagamento no Balcão'}
+              {customerName ? `Quitação de Comanda: ${payerName || customerName}` : 'Pagamento no Balcão'}
             </h3>
           </div>
         </div>
+
+        {/* Payer Name & Phone Fields for Fiado Settlement */}
+        {showPayerFields && (
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 mb-4 p-3 rounded-2xl bg-slate-50 dark:bg-slate-950/80 border border-slate-200 dark:border-slate-800">
+            <div>
+              <label className="text-[11px] font-bold text-slate-600 dark:text-slate-400 block mb-1">
+                Nome da Pessoa *
+              </label>
+              <input
+                type="text"
+                value={payerName}
+                onChange={(e) => setPayerName(e.target.value)}
+                placeholder="Nome completo"
+                className="w-full bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-xl px-2.5 py-1.5 text-xs text-slate-900 dark:text-white focus:outline-none focus:border-teal-500"
+              />
+            </div>
+            <div>
+              <label className="text-[11px] font-bold text-slate-600 dark:text-slate-400 block mb-1">
+                Número / WhatsApp *
+              </label>
+              <input
+                type="tel"
+                value={payerPhone}
+                onChange={(e) => setPayerPhone(e.target.value)}
+                placeholder="Ex: 11987654321"
+                className="w-full bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-xl px-2.5 py-1.5 text-xs text-slate-900 dark:text-white font-mono focus:outline-none focus:border-teal-500"
+              />
+            </div>
+          </div>
+        )}
 
         {/* Amount Box */}
         <div className="bg-slate-50 dark:bg-slate-950/90 border border-slate-200 dark:border-slate-800 rounded-2xl p-4.5 text-center mb-5 shadow-xs">
