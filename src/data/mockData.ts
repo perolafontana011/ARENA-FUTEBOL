@@ -1,5 +1,18 @@
 import { Product, Customer, Sale, Expense, PixConfig, PushNotification } from '../types';
 
+import espetinhoCarneImg from '../assets/images/espetinho_churrasco_grelha_1794320206346.jpg';
+import espetinhoFrangoBaconImg from '../assets/images/espetinho_frango_bacon_1794407522891.jpg';
+import pastelCarneImg from '../assets/images/pastel_feira_crocante_1794320206386.jpg';
+import pastelQueijoImg from '../assets/images/pastel_queijo_1794407535674.jpg';
+import hotDogImg from '../assets/images/hot_dog_estadio_1794407428338.jpg';
+import cervejaBrahmaImg from '../assets/images/cerveja_lata_gelada_1794320206266.jpg';
+import cervejaHeinekenImg from '../assets/images/cerveja_heineken_1794407495904.jpg';
+import guaranaImg from '../assets/images/refrigerante_guarana_1794407441803.jpg';
+import cocaColaImg from '../assets/images/coca_cola_lata_1794407454272.jpg';
+import aguaMineralImg from '../assets/images/agua_mineral_1794407468565.jpg';
+import energeticoImg from '../assets/images/energetico_lata_1794407508833.jpg';
+import batataFritaImg from '../assets/images/batata_frita_1794407481494.jpg';
+
 export const INITIAL_PRODUCTS: Product[] = [
   {
     id: 'prod-1',
@@ -11,7 +24,7 @@ export const INITIAL_PRODUCTS: Product[] = [
     minStockThreshold: 15,
     unit: 'espeto',
     description: 'Acompanha farofa caseira temperada e vinagrete especial.',
-    imageUrl: '/src/assets/images/espetinho_churrasco_grelha_1794320206346.jpg',
+    imageUrl: espetinhoCarneImg,
   },
   {
     id: 'prod-2',
@@ -23,7 +36,7 @@ export const INITIAL_PRODUCTS: Product[] = [
     minStockThreshold: 12,
     unit: 'espeto',
     description: 'Suculento peito de frango enrolado no bacon crocante grelhado na brasa.',
-    imageUrl: '/src/assets/images/espetinho_frango_bacon_1794407522891.jpg',
+    imageUrl: espetinhoFrangoBaconImg,
   },
   {
     id: 'prod-3',
@@ -35,7 +48,7 @@ export const INITIAL_PRODUCTS: Product[] = [
     minStockThreshold: 10,
     unit: 'un',
     description: 'Frito na hora, massa crocante sequinha e recheio de carne bem temperado.',
-    imageUrl: '/src/assets/images/pastel_feira_crocante_1794320206386.jpg',
+    imageUrl: pastelCarneImg,
   },
   {
     id: 'prod-4',
@@ -47,7 +60,7 @@ export const INITIAL_PRODUCTS: Product[] = [
     minStockThreshold: 10,
     unit: 'un',
     description: 'Queijo mussarela derretido e puxento com legítimo catupiry cremoso.',
-    imageUrl: '/src/assets/images/pastel_queijo_1794407535674.jpg',
+    imageUrl: pastelQueijoImg,
   },
   {
     id: 'prod-5',
@@ -59,7 +72,7 @@ export const INITIAL_PRODUCTS: Product[] = [
     minStockThreshold: 8,
     unit: 'un',
     description: 'Pão macio, molho de tomate caseiro, milho, ervilha e muita batata palha.',
-    imageUrl: '/src/assets/images/hot_dog_estadio_1794407428338.jpg',
+    imageUrl: hotDogImg,
   },
   {
     id: 'prod-6',
@@ -71,7 +84,7 @@ export const INITIAL_PRODUCTS: Product[] = [
     minStockThreshold: 24,
     unit: 'lata',
     description: 'Lata trincando de gelada, retirada direto do gelo moído.',
-    imageUrl: '/src/assets/images/cerveja_lata_gelada_1794320206266.jpg',
+    imageUrl: cervejaBrahmaImg,
   },
   {
     id: 'prod-7',
@@ -83,7 +96,7 @@ export const INITIAL_PRODUCTS: Product[] = [
     minStockThreshold: 18,
     unit: 'garrafa',
     description: 'Cerveja premium puro malte holandesa em garrafa verde estupidamente gelada.',
-    imageUrl: '/src/assets/images/cerveja_heineken_1794407495904.jpg',
+    imageUrl: cervejaHeinekenImg,
   },
   {
     id: 'prod-8',
@@ -95,7 +108,7 @@ export const INITIAL_PRODUCTS: Product[] = [
     minStockThreshold: 15,
     unit: 'lata',
     description: 'O sabor autêntico do futebol brasileiro, lata trincando de gelada.',
-    imageUrl: '/src/assets/images/refrigerante_guarana_1794407441803.jpg',
+    imageUrl: guaranaImg,
   },
   {
     id: 'prod-9',
@@ -107,7 +120,7 @@ export const INITIAL_PRODUCTS: Product[] = [
     minStockThreshold: 15,
     unit: 'lata',
     description: 'Coca-Cola original em lata bem gelada com gotas de condensação.',
-    imageUrl: '/src/assets/images/coca_cola_lata_1794407454272.jpg',
+    imageUrl: cocaColaImg,
   },
   {
     id: 'prod-10',
@@ -119,7 +132,7 @@ export const INITIAL_PRODUCTS: Product[] = [
     minStockThreshold: 20,
     unit: 'garrafa',
     description: 'Garrafa 500ml geladinha para hidratação de atletas e torcedores.',
-    imageUrl: '/src/assets/images/agua_mineral_1794407468565.jpg',
+    imageUrl: aguaMineralImg,
   },
   {
     id: 'prod-11',
@@ -131,7 +144,7 @@ export const INITIAL_PRODUCTS: Product[] = [
     minStockThreshold: 10,
     unit: 'lata',
     description: 'Energia máxima para o segundo tempo da partida.',
-    imageUrl: '/src/assets/images/energetico_lata_1794407508833.jpg',
+    imageUrl: energeticoImg,
   },
   {
     id: 'prod-12',
@@ -143,7 +156,7 @@ export const INITIAL_PRODUCTS: Product[] = [
     minStockThreshold: 10,
     unit: 'porção',
     description: 'Batata frita dourada e sequinha no cone de papel com sal e orégano.',
-    imageUrl: '/src/assets/images/batata_frita_1794407481494.jpg',
+    imageUrl: batataFritaImg,
   },
 ];
 
