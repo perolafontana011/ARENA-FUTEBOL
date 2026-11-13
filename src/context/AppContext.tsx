@@ -9,7 +9,9 @@ import {
   CartItem, 
   PaymentMethod,
   DebtPayment,
-  MonthlyReportSummary
+  MonthlyReportSummary,
+  EXTRA_SAUCE_PRICE,
+  EXTRA_SAUCE_COST
 } from '../types';
 import { 
   INITIAL_PRODUCTS, 
@@ -48,12 +50,17 @@ interface AppContextType {
   isFirestoreConnected: boolean;
   firestoreSyncStatus: 'synced' | 'syncing' | 'offline';
 
-  // Cart
+  // Cart & Sauces
   cart: CartItem[];
   addToCart: (product: Product, quantity?: number) => void;
   removeFromCart: (productId: string) => void;
   updateCartQuantity: (productId: string, quantity: number) => void;
   clearCart: () => void;
+  selectedSauces: string[];
+  toggleSauce: (sauce: string) => void;
+  extraSaucesQty: number;
+  setExtraSaucesQty: (qty: number) => void;
+  extraSaucesTotal: number;
   cartTotal: number;
   cartCost: number;
 
@@ -224,8 +231,10 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     return saved ? JSON.parse(saved) : INITIAL_NOTIFICATIONS;
   });
 
-  // Cart
+  // Cart & Sauces
   const [cart, setCart] = useState<CartItem[]>([]);
+  const [selectedSauces, setSelectedSauces] = useState<string[]>([]);
+  const [extraSaucesQty, setExtraSaucesQtyState] = useState<number>(0);
 
   // Sync to LocalStorage
   useEffect(() => {
@@ -482,15 +491,42 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     );
   };
 
-  const clearCart = () => setCart([]);
+  const clearCart = () => {
+    setCart([]);
+    setSelectedSauces([]);
+    setExtraSaucesQtyState(0);
+  };
+
+  const toggleSauce = (sauce: string) => {
+    setSelectedSauces((prev) => {
+      if (sauce === 'Sem Molho') {
+        return prev.includes('Sem Molho') ? [] : ['Sem Molho'];
+      }
+      const withoutNone = prev.filter((s) => s !== 'Sem Molho');
+      if (withoutNone.includes(sauce)) {
+        return withoutNone.filter((s) => s !== sauce);
+      }
+      return [...withoutNone, sauce];
+    });
+  };
+
+  const setExtraSaucesQty = (qty: number) => {
+    setExtraSaucesQtyState(Math.max(0, Math.floor(qty)));
+  };
+
+  const extraSaucesTotal = useMemo(() => {
+    return extraSaucesQty * EXTRA_SAUCE_PRICE;
+  }, [extraSaucesQty]);
 
   const cartTotal = useMemo(() => {
-    return cart.reduce((acc, item) => acc + item.product.salePrice * item.quantity, 0);
-  }, [cart]);
+    const itemsTotal = cart.reduce((acc, item) => acc + item.product.salePrice * item.quantity, 0);
+    return itemsTotal + extraSaucesTotal;
+  }, [cart, extraSaucesTotal]);
 
   const cartCost = useMemo(() => {
-    return cart.reduce((acc, item) => acc + item.product.costPrice * item.quantity, 0);
-  }, [cart]);
+    const itemsCost = cart.reduce((acc, item) => acc + item.product.costPrice * item.quantity, 0);
+    return itemsCost + extraSaucesQty * EXTRA_SAUCE_COST;
+  }, [cart, extraSaucesQty]);
 
   // Notifications
   const addNotification = (title: string, body: string, type: PushNotification['type']) => {
@@ -625,6 +661,16 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     const totalCost = cartCost;
     const profit = totalAmount - totalCost;
 
+    const sauceSummaryParts: string[] = [];
+    if (selectedSauces.length > 0) {
+      sauceSummaryParts.push(`Molhos: ${selectedSauces.join(', ')}`);
+    }
+    if (extraSaucesQty > 0) {
+      sauceSummaryParts.push(`${extraSaucesQty}x potinho extra`);
+    }
+    const sauceNotes = sauceSummaryParts.join(' · ');
+    const combinedNotes = [notes, sauceNotes].filter(Boolean).join(' | ');
+
     const newSale: Sale = {
       id: `sale-${Date.now()}`,
       timestamp: new Date().toISOString(),
@@ -633,9 +679,10 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       totalCost,
       profit,
       paymentMethod,
-      customerId: selectedCustomer?.id,
-      customerName: selectedCustomer?.name,
-      notes,
+      ...(selectedCustomer ? { customerId: selectedCustomer.id, customerName: selectedCustomer.name } : {}),
+      ...(selectedSauces.length > 0 ? { sauces: selectedSauces } : {}),
+      ...(extraSaucesQty > 0 ? { extraSaucesQty, extraSaucesTotal } : {}),
+      ...(combinedNotes ? { notes: combinedNotes } : {}),
     };
 
     // 1. Decrement Stock local and remote
@@ -1077,6 +1124,8 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     setIsAdmin(true);
     setAdminPinState('1234');
     setCart([]);
+    setSelectedSauces([]);
+    setExtraSaucesQtyState(0);
 
     // Seed Firestore
     const batch = writeBatch(db);
@@ -1117,6 +1166,11 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
         removeFromCart,
         updateCartQuantity,
         clearCart,
+        selectedSauces,
+        toggleSauce,
+        extraSaucesQty,
+        setExtraSaucesQty,
+        extraSaucesTotal,
         cartTotal,
         cartCost,
         products,

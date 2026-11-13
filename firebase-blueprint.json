@@ -42,9 +42,13 @@
         "id": { "type": "string" },
         "timestamp": { "type": "string" },
         "totalAmount": { "type": "number" },
-        "paymentMethod": { "type": "string", "enum": ["dinheiro", "pix", "debito", "credito", "fiado"] },
+        "paymentMethod": { "type": "string", "enum": ["dinheiro", "pix", "cartao_debito", "cartao_credito", "fiado"] },
         "customerId": { "type": "string" },
-        "customerName": { "type": "string" }
+        "customerName": { "type": "string" },
+        "sauces": { "type": "array" },
+        "extraSaucesQty": { "type": "number" },
+        "extraSaucesTotal": { "type": "number" },
+        "notes": { "type": "string" }
       },
       "required": ["id", "timestamp", "totalAmount", "paymentMethod"]
     },

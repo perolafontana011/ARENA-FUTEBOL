@@ -115,6 +115,7 @@ export const CashFlowView: React.FC = () => {
     timestamp: string;
     type: 'sale' | 'debt_payment' | 'expense';
     title: string;
+    subtitle?: string;
     category?: string;
     amount: number;
     paymentMethod: string;
@@ -122,6 +123,12 @@ export const CashFlowView: React.FC = () => {
   }> = [];
 
   sales.forEach((s) => {
+    const sauceDetails = s.sauces?.length
+      ? `Molhos: ${s.sauces.join(', ')}${s.extraSaucesQty ? ` (+${s.extraSaucesQty} extra)` : ''}`
+      : s.extraSaucesQty
+      ? `${s.extraSaucesQty}x potinho de molho extra`
+      : undefined;
+
     transactions.push({
       id: s.id,
       timestamp: s.timestamp,
@@ -129,6 +136,7 @@ export const CashFlowView: React.FC = () => {
       title: s.paymentMethod === 'fiado' 
         ? `Venda na Caderneta (Fiado): ${s.customerName || 'Cliente'}` 
         : `Venda no Balcão (${s.items.length} itens)`,
+      subtitle: sauceDetails || s.notes,
       amount: s.totalAmount,
       paymentMethod: s.paymentMethod,
       isInflow: s.paymentMethod !== 'fiado',
@@ -418,6 +426,11 @@ export const CashFlowView: React.FC = () => {
                     <td className="py-3 px-3.5 font-bold text-slate-900 dark:text-slate-200">
                       <div>
                         <span>{tx.title}</span>
+                        {tx.subtitle && (
+                          <span className="text-[11px] text-slate-500 dark:text-slate-400 font-normal block">
+                            {tx.subtitle}
+                          </span>
+                        )}
                         {tx.category && (
                           <span className="text-[11px] text-slate-400 font-normal block">
                             {categoryNames[tx.category] || tx.category}

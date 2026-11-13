@@ -16,10 +16,11 @@ import {
   Flame,
   Beer,
   UtensilsCrossed,
-  GlassWater
+  GlassWater,
+  Droplets
 } from 'lucide-react';
 import { useApp } from '../context/AppContext';
-import { Product, ProductCategory, PaymentMethod } from '../types';
+import { Product, ProductCategory, PaymentMethod, SAUCE_OPTIONS, EXTRA_SAUCE_PRICE } from '../types';
 import { formatBRL } from '../utils/pix';
 import { PixModal } from './PixModal';
 
@@ -31,6 +32,11 @@ export const POSView: React.FC = () => {
     removeFromCart, 
     updateCartQuantity, 
     clearCart, 
+    selectedSauces,
+    toggleSauce,
+    extraSaucesQty,
+    setExtraSaucesQty,
+    extraSaucesTotal,
     cartTotal, 
     makeSale, 
     customers, 
@@ -70,6 +76,8 @@ export const POSView: React.FC = () => {
   });
 
   const selectedCustomer = customers.find((c) => c.id === selectedCustomerId);
+
+  const itemsSubtotal = cartTotal - extraSaucesTotal;
 
   // Cash change calculation
   const cashGivenNumber = parseFloat(cashTendered.replace(',', '.')) || 0;
@@ -125,7 +133,12 @@ export const POSView: React.FC = () => {
     });
 
     if (result.success) {
-      setSaleSuccessMessage(`Pedido de ${formatBRL(result.sale?.totalAmount || 0)} finalizado com sucesso!`);
+      const saucesLabel = result.sale?.sauces?.length
+        ? ` (${result.sale.sauces.join(', ')})`
+        : '';
+      setSaleSuccessMessage(
+        `Pedido de ${formatBRL(result.sale?.totalAmount || 0)} finalizado com sucesso${saucesLabel}!`
+      );
       setCashTendered('');
       setSelectedCustomerId('');
       setFiadoDirectName('');
@@ -478,12 +491,94 @@ export const POSView: React.FC = () => {
             )}
           </div>
 
+          {/* Opção de Molhos */}
+          {cart.length > 0 && (
+            <div className="pt-3.5 border-t border-slate-200 dark:border-slate-800 space-y-2.5">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-bold text-slate-800 dark:text-slate-200 flex items-center gap-1.5">
+                  <Droplets className="w-3.5 h-3.5 text-amber-500" />
+                  Opção de Molhos
+                </span>
+                <span className="text-[10px] font-semibold text-emerald-700 dark:text-emerald-400">
+                  Acompanhamento grátis
+                </span>
+              </div>
+
+              <div className="grid grid-cols-2 gap-1.5">
+                {SAUCE_OPTIONS.map((sauce) => {
+                  const isSelected = selectedSauces.includes(sauce);
+                  const isNoSauce = sauce === 'Sem Molho';
+                  return (
+                    <button
+                      key={sauce}
+                      type="button"
+                      onClick={() => toggleSauce(sauce)}
+                      className={`px-2.5 py-1.5 rounded-xl border text-[11px] font-bold text-left transition-all cursor-pointer flex items-center justify-between gap-1 ${
+                        isSelected
+                          ? isNoSauce
+                            ? 'bg-slate-200 dark:bg-slate-700 border-slate-400 dark:border-slate-500 text-slate-900 dark:text-white'
+                            : 'bg-amber-50 dark:bg-amber-500/20 border-amber-500 text-amber-900 dark:text-amber-300 shadow-2xs'
+                          : 'bg-slate-50 dark:bg-slate-950/60 border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:border-slate-300 dark:hover:border-slate-700'
+                      }`}
+                    >
+                      <span className="truncate">{sauce}</span>
+                      {isSelected && <span className="text-[10px] shrink-0">✓</span>}
+                    </button>
+                  );
+                })}
+              </div>
+
+              {/* Potinho de Molho Extra */}
+              <div className="flex items-center justify-between gap-2 p-2.5 rounded-xl bg-slate-50 dark:bg-slate-950/70 border border-slate-200/80 dark:border-slate-800">
+                <div>
+                  <span className="text-[11px] font-bold text-slate-800 dark:text-slate-200 block">
+                    Potinho de Molho Extra
+                  </span>
+                  <span className="text-[10px] text-slate-500 dark:text-slate-400 font-mono">
+                    +{formatBRL(EXTRA_SAUCE_PRICE)} por potinho
+                  </span>
+                </div>
+                <div className="flex items-center bg-white dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700 p-0.5 shadow-xs">
+                  <button
+                    type="button"
+                    onClick={() => setExtraSaucesQty(extraSaucesQty - 1)}
+                    disabled={extraSaucesQty === 0}
+                    className="w-6 h-6 flex items-center justify-center text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white disabled:opacity-30 cursor-pointer"
+                  >
+                    <Minus className="w-3 h-3" />
+                  </button>
+                  <span className="w-6 text-center text-xs font-mono font-bold text-slate-900 dark:text-white">
+                    {extraSaucesQty}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => setExtraSaucesQty(extraSaucesQty + 1)}
+                    className="w-6 h-6 flex items-center justify-center text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white cursor-pointer"
+                  >
+                    <Plus className="w-3 h-3" />
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* Subtotal & Total */}
           <div className="pt-3.5 border-t border-slate-200 dark:border-slate-800 space-y-1.5">
             <div className="flex justify-between text-xs text-slate-500 dark:text-slate-400">
-              <span>Subtotal</span>
-              <span className="font-mono tabular-nums">{formatBRL(cartTotal)}</span>
+              <span>Subtotal dos itens</span>
+              <span className="font-mono tabular-nums">{formatBRL(itemsSubtotal)}</span>
             </div>
+            {extraSaucesQty > 0 && (
+              <div className="flex justify-between text-xs text-amber-700 dark:text-amber-400 font-semibold">
+                <span>Potinhos de molho extra ({extraSaucesQty}x)</span>
+                <span className="font-mono tabular-nums">+{formatBRL(extraSaucesTotal)}</span>
+              </div>
+            )}
+            {selectedSauces.length > 0 && (
+              <div className="text-[11px] text-slate-600 dark:text-slate-400 leading-snug">
+                <span className="font-bold text-slate-700 dark:text-slate-300">Molhos:</span> {selectedSauces.join(', ')}
+              </div>
+            )}
             <div className="flex justify-between items-baseline pt-1">
               <span className="text-sm font-bold text-slate-900 dark:text-white">Total a Pagar</span>
               <span className="text-3xl font-black text-emerald-700 dark:text-emerald-400 font-mono tabular-nums tracking-tight">
@@ -781,7 +876,11 @@ export const POSView: React.FC = () => {
         onClose={() => setIsPixModalOpen(false)}
         amount={cartTotal}
         customerName={selectedCustomer?.name}
-        description="Venda na Barraca - Campeonato"
+        description={
+          selectedSauces.length > 0
+            ? `Venda na Barraca (${selectedSauces.join(', ')})`
+            : 'Venda na Barraca - Campeonato'
+        }
         onPaymentConfirmed={() => {
           finalizeSale();
         }}

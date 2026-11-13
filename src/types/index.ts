@@ -49,6 +49,20 @@ export interface SaleItem {
   subtotal: number;
 }
 
+export const SAUCE_OPTIONS = [
+  'Alho Cremoso',
+  'Maionese Temperada',
+  'Barbecue',
+  'Pimenta Caseira',
+  'Vinagrete',
+  'Ketchup',
+  'Mostarda',
+  'Sem Molho',
+] as const;
+
+export const EXTRA_SAUCE_PRICE = 2.0;
+export const EXTRA_SAUCE_COST = 0.5;
+
 export interface Sale {
   id: string;
   timestamp: string; // ISO string
@@ -59,6 +73,9 @@ export interface Sale {
   paymentMethod: PaymentMethod;
   customerId?: string;
   customerName?: string;
+  sauces?: string[];
+  extraSaucesQty?: number;
+  extraSaucesTotal?: number;
   notes?: string;
 }
 
